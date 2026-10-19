@@ -1,0 +1,157 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<script src="assets2.js"></script>
+<style>
+@font-face{font-family:'AB';src:url('/home/user/Halloween-terownie/node_modules/@fontsource/archivo-black/files/archivo-black-latin-400-normal.woff2')}
+@font-face{font-family:'SG';font-weight:500;src:url('/home/user/Halloween-terownie/node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-500-normal.woff2')}
+@font-face{font-family:'SG';font-weight:700;src:url('/home/user/Halloween-terownie/node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2')}
+@font-face{font-family:'PM';src:url('/home/user/Halloween-terownie/node_modules/@fontsource/permanent-marker/files/permanent-marker-latin-400-normal.woff2')}
+html,body{margin:0;background:transparent}
+#p{position:relative;overflow:hidden;width:1080px;height:1350px}
+#p>*{position:absolute;left:0;top:0}
+.lbl{font-family:SG;font-weight:700;color:#FFF4DA;letter-spacing:.12em;text-align:center;white-space:nowrap}
+</style></head>
+<body><div id="p"></div>
+<script>
+const W=1080,H=1350,P=document.getElementById('p');
+const C={orange:'#FF8500',purple:'#32104D',violet:'#25102F',red:'#D7192D',burg:'#510C1A',ink:'#10090F',cream:'#F2DFB6',navy:'#17166F',paper:'#FFF4DA'};
+function layer(name,z,blend){const c=document.createElement('canvas');c.width=W;c.height=H;c.dataset.layer=name;c.style.zIndex=z;if(blend)c.style.mixBlendMode=blend;P.appendChild(c);return c.getContext('2d')}
+function div(name,z,css,html){const d=document.createElement('div');d.dataset.layer=name;d.style.cssText+=`z-index:${z};`+css;d.innerHTML=html||'';P.appendChild(d);return d}
+function rng(s){return()=>{s=(s+0x6D2B79F5)|0;let t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}}
+const load=u=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=u});
+const svg=id=>load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(ASSETS[id].svg));
+function poly(ctx,pts){ctx.beginPath();pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath()}
+function fillPoly(ctx,pts,fill,stroke,lw=6){poly(ctx,pts);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.lineWidth=lw;ctx.lineJoin='round';ctx.strokeStyle=stroke;ctx.stroke()}}
+// dot screen clipped to a polygon; size(x,y) in 0..1
+function dots(ctx,pts,color,spacing,size,angle=45){ctx.save();poly(ctx,pts);ctx.clip();ctx.fillStyle=color;const t=angle*Math.PI/180;ctx.beginPath();
+  for(let gy=-1600;gy<1600;gy+=spacing)for(let gx=-1600;gx<1600;gx+=spacing){const x=540+gx*Math.cos(t)-gy*Math.sin(t),y=675+gx*Math.sin(t)+gy*Math.cos(t);if(x<-10||y<-10||x>W+10||y>H+10)continue;const r=spacing*.55*size(x,y);if(r<.3)continue;ctx.moveTo(x+r,y);ctx.arc(x,y,r,0,7)}
+  ctx.fill();ctx.restore()}
+// halftone-render an image: brighter source => bigger dots; optional dark plate keeps the silhouette
+function halftone(ctx,img,x,y,w,h,{color,plate,spacing=7,gain=1.4,flip=false}){
+  const o=document.createElement('canvas');o.width=Math.ceil(w);o.height=Math.ceil(h);const c=o.getContext('2d');if(flip){c.translate(w,0);c.scale(-1,1)}c.drawImage(img,0,0,w,h);
+  const d=c.getImageData(0,0,o.width,o.height).data;
+  if(plate){const s=document.createElement('canvas');s.width=o.width;s.height=o.height;const sc=s.getContext('2d');sc.drawImage(o,0,0);sc.globalCompositeOperation='source-in';sc.fillStyle=plate;sc.fillRect(0,0,s.width,s.height);ctx.drawImage(s,x,y)}
+  ctx.fillStyle=color;ctx.beginPath();const t=Math.PI/4;
+  for(let gy=-2*h;gy<2*h;gy+=spacing)for(let gx=-2*w;gx<2*w;gx+=spacing){const px=w/2+gx*Math.cos(t)-gy*Math.sin(t),py=h/2+gx*Math.sin(t)+gy*Math.cos(t);if(px<0||py<0||px>=w||py>=h)continue;
+    const k=((py|0)*o.width+(px|0))*4,a=d[k+3]/255;if(a<.05)continue;const l=(.299*d[k]+.587*d[k+1]+.114*d[k+2])/255;const r=spacing*.62*Math.min(1,Math.sqrt(l)*gain)*a;if(r<.4)continue;ctx.moveTo(x+px+r,y+py);ctx.arc(x+px,y+py,r,0,7)}
+  ctx.fill()}
+function torn(w,h,seed){const r=rng(seed);let d=`M0 ${6+r()*8}`;for(let x=0;x<=w;x+=13)d+=`L${x} ${r()*11}`;d+=`L${w} ${h-r()*9}`;for(let x=w;x>=0;x-=13)d+=`L${x} ${h-r()*11}`;return d+'Z'}
+function banner(name,z,top,w,h,rot,seed,html){
+  return div(name,z,`left:${(W-w)/2}px;top:${top}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg)`,
+   `<svg width="${w}" height="${h}" style="position:absolute;inset:0;overflow:visible"><path d="${torn(w,h,seed)}" fill="${C.ink}" opacity=".75" transform="translate(7 8)"/><path d="${torn(w,h,seed)}" fill="${C.red}"/><path d="${torn(w,h,seed)}" fill="url(#bd${seed})" opacity=".35"/><defs><pattern id="bd${seed}" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="3.5" cy="3.5" r="1.3" fill="${C.burg}"/></pattern></defs></svg><div class="lbl" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center">${html}</div>`)}
+
+(async()=>{
+  for(const f of ["40px AB","500 20px SG","700 20px SG","20px PM"])await document.fonts.load(f);
+  const A={};for(const id of Object.keys(ASSETS))A[id]=await svg(id);
+  const face=await load('/home/user/Halloween-terownie/public/brand/terownie-face-cream.png');
+  const word=await load('/home/user/Halloween-terownie/public/brand/terownie-wordmark-cream.png');
+
+  // ── 1 background ───────────────────────────────────────────
+  const bg=layer('01-background',1);
+  let g=bg.createLinearGradient(0,0,0,H);g.addColorStop(0,'#3A1260');g.addColorStop(.35,C.purple);g.addColorStop(.62,C.violet);g.addColorStop(.82,C.burg);g.addColorStop(1,C.ink);
+  bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  g=bg.createRadialGradient(545,760,20,545,760,520);g.addColorStop(0,'rgba(255,90,20,.55)');g.addColorStop(.5,'rgba(215,25,45,.28)');g.addColorStop(1,'rgba(215,25,45,0)');bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  // fine purple dot screen, denser toward the top
+  dots(bg,[[0,0],[W,0],[W,H],[0,H]],'rgba(140,70,220,.38)',8,(x,y)=>Math.max(0,1-y/900)*.75+.08);
+
+  // ── 2 architecture (halftone, Disco-Devil style building) ──
+  const ar=layer('02-architecture-halftone',2);
+  halftone(ar,A['moon-full'],760,250,250,250,{color:'#FFB347',plate:'#4A1838',spacing:6.5,gain:1.2});
+  halftone(ar,A['haunted-house'],560,270,600,750,{color:C.orange,plate:'#2A0B26',spacing:7,gain:2.6});
+  halftone(ar,A['haunted-house'],-140,330,560,700,{color:'#E0661A',plate:'#22081E',spacing:7,gain:2.4,flip:true});
+  g=ar.createLinearGradient(0,900,0,1100);g.addColorStop(0,'rgba(16,9,15,0)');g.addColorStop(1,'rgba(16,9,15,.85)');ar.globalCompositeOperation='source-atop';ar.fillStyle=g;ar.fillRect(0,900,W,450);ar.globalCompositeOperation='source-over';
+
+  // ── 3 partygoers (halftone red, secondary) ────────────────
+  const pg=layer('03-partygoers-halftone',3);
+  halftone(pg,A['pumpkin-head'],8,600,290,458,{color:C.red,plate:'#1C0712',spacing:6.5,gain:1.5});
+  halftone(pg,A['hooded-stalker'],905,640,230,383,{color:C.red,plate:'#1C0712',spacing:6.5,gain:2.4,flip:true});
+
+  // ── 4 mascot: giant spiral-eyed Terownie face rising behind the booth ──
+  const ms=layer('04-mascot',4);
+  const head=[];for(let i=0;i<=40;i++){const a=Math.PI+i/40*Math.PI;head.push([545+Math.cos(a)*270,520+Math.sin(a)*265])}
+  head.push([815,560],[275,560]);
+  ms.save();ms.shadowColor='rgba(255,120,30,.45)';ms.shadowBlur=40;fillPoly(ms,head,C.navy);ms.restore();
+  dots(ms,head,'rgba(103,41,166,.85)',7,(x,y)=>Math.min(1,Math.max(0,(x-480)/320)+.12));
+  fillPoly(ms,head,null,C.ink,9);
+  // rim light
+  ms.save();poly(ms,head);ms.clip();ms.lineWidth=10;ms.strokeStyle='rgba(255,133,0,.75)';ms.beginPath();ms.arc(545,520,262,Math.PI*1.08,Math.PI*1.45);ms.stroke();ms.restore();
+  const fw=300,fh=fw*face.height/face.width;ms.drawImage(face,545-fw/2,352,fw,fh);
+  // hands gripping the sign
+  for(const [x,flip] of [[318,1],[772,-1]]){const hp=[[x-34*flip,520],[x-30*flip,488],[x-10*flip,478],[x+14*flip,482],[x+30*flip,496],[x+32*flip,520]];fillPoly(ms,hp,C.navy,C.ink,7);
+    for(const k of [-12,4,20]){ms.beginPath();ms.moveTo(x+k*flip,484);ms.lineTo(x+k*flip,508);ms.lineWidth=4;ms.strokeStyle=C.ink;ms.stroke()}}
+
+  // ── 5 booth (three-quarter view) ──────────────────────────
+  const b=layer('05-booth',5);
+  // glow under awning
+  g=b.createRadialGradient(560,740,10,560,740,330);g.addColorStop(0,'rgba(255,133,0,.75)');g.addColorStop(1,'rgba(255,60,20,0)');b.fillStyle=g;b.beginPath();b.ellipse(560,750,330,150,0,0,7);b.fill();
+  // posts
+  for(const [x,y0,y1] of [[258,826,650],[775,802,640]])fillPoly(b,[[x-7,y1],[x+7,y1],[x+7,y0],[x-7,y0]],'#2A1A5E',C.ink,5);
+  // counter side + front + top
+  const side=[[250,826],[312,850],[312,1010],[250,982]],front=[[312,850],[832,824],[832,990],[312,1010]];
+  fillPoly(b,side,'#0E0D45',C.ink,8);dots(b,side,'rgba(0,0,0,.5)',6,()=>.8);
+  fillPoly(b,front,C.navy,null);dots(b,front,'rgba(103,41,166,.9)',6.5,(x,y)=>.25+(x-312)/520*.55);
+  g=b.createLinearGradient(0,850,0,1000);g.addColorStop(0,'rgba(255,120,30,.35)');g.addColorStop(1,'rgba(255,120,30,0)');b.fillStyle=g;poly(b,front);b.fill();
+  fillPoly(b,front,null,C.ink,8);
+  // front trim
+  fillPoly(b,[[330,866],[814,842],[814,976],[330,994]],null,C.cream,4);
+  const top=[[244,822],[766,798],[842,820],[306,846]];fillPoly(b,top,C.cream,C.ink,7);
+  fillPoly(b,[[306,846],[842,820],[842,832],[306,860]],'#B9A27A',C.ink,5);
+  // front posts
+  for(const [x,y0,y1] of [[318,846,690],[826,820,668]])fillPoly(b,[[x-9,y1],[x+9,y1],[x+9,y0],[x-9,y0]],'#3A2380',C.ink,6);
+  // awning stripes
+  const n=8,back=[[230,640],[805,620]],fr=[[282,700],[866,674]];
+  const lerp=(p,q,t)=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];
+  for(let i=0;i<n;i++){const a0=lerp(back[0],back[1],i/n),a1=lerp(back[0],back[1],(i+1)/n),f0=lerp(fr[0],fr[1],i/n),f1=lerp(fr[0],fr[1],(i+1)/n);fillPoly(b,[a0,a1,f1,f0],i%2?C.cream:C.navy)}
+  for(let i=0;i<n;i++){const f0=lerp(fr[0],fr[1],i/n),f1=lerp(fr[0],fr[1],(i+1)/n),m=lerp(f0,f1,.5),r=(f1[0]-f0[0])/2;b.beginPath();b.moveTo(f0[0],f0[1]);b.ellipse(m[0],m[1],r,24,Math.atan2(f1[1]-f0[1],f1[0]-f0[0]),Math.PI,0,true);b.closePath();b.fillStyle=i%2?C.cream:C.navy;b.fill();b.lineWidth=5;b.strokeStyle=C.ink;b.stroke()}
+  fillPoly(b,[back[0],back[1],fr[1],fr[0]],null,C.ink,7);
+  // pumpkin bunting
+  for(let i=0;i<7;i++){const p=lerp([300,742],[846,716],(i+.5)/7);b.beginPath();b.arc(p[0],p[1]+Math.sin(i)*3,11,0,7);b.fillStyle=C.orange;b.fill();b.lineWidth=3;b.strokeStyle=C.ink;b.stroke()}
+  b.beginPath();b.moveTo(292,732);b.quadraticCurveTo(570,748,856,708);b.lineWidth=2.5;b.strokeStyle=C.ink;b.stroke();
+  // sign board with the real wordmark
+  const sign=[[300,496],[792,482],[792,612],[300,622]];fillPoly(b,sign,C.navy,C.ink,9);
+  fillPoly(b,[[314,508],[778,496],[778,600],[314,610]],null,C.cream,4);
+  for(const [x,y0,y1] of [[350,620,690],[742,610,675]])fillPoly(b,[[x-5,y0],[x+5,y0],[x+5,y1],[x-5,y1]],C.ink);
+  b.drawImage(A['jack-classic'],232,742,112,106);
+  b.drawImage(A['cobweb'],792,628,90,90);
+
+  // ── 6 foreground ───────────────────────────────────────────
+  const fg=layer('06-foreground',6);
+  halftone(fg,A['jack-scary'],-70,960,330,314,{color:C.red,plate:'#1C0712',spacing:7,gain:1.3});
+  for(const [id,x,y,s] of [['bat-up',890,250,140],['bat-glide',60,420,110],['bat-down',990,460,80],['bat-up',190,560,70]])fg.drawImage(A[id],x-s/2,y,s,s*.75);
+
+  // ── 6b real Terownie drinks (photo cutouts from the menu) ──
+  const dk=layer('06b-drinks',9);
+  const DR=[['strawberry-matcha',240],['taro-cloud',435],['dirty-matcha',640],['biscoff-sea-salt',840]];
+  for(const [n,cx] of DR){const im=await load('/home/user/Halloween-terownie/public/drinks/'+n+'.png');const h=276,w=h*im.width/im.height;
+    dk.save();dk.shadowColor='rgba(16,9,15,.75)';dk.shadowBlur=0;dk.shadowOffsetX=8;dk.shadowOffsetY=10;dk.drawImage(im,cx-w/2,1012-h,w,h);dk.restore();
+    // warm booth light on the cups
+    }
+  g=dk.createRadialGradient(540,800,40,540,800,520);g.addColorStop(0,'rgba(255,133,0,.22)');g.addColorStop(1,'rgba(255,133,0,0)');dk.globalCompositeOperation='source-atop';dk.fillStyle=g;dk.fillRect(0,0,W,H);dk.globalCompositeOperation='source-over';
+  // red brush tags like the menu
+  const NAMES={'strawberry-matcha':'strawberry matcha','taro-cloud':'taro cloud','dirty-matcha':'dirty matcha','biscoff-sea-salt':'biscoff sea salt'};
+  DR.forEach(([n,cx],i)=>div('06c-tag-'+n,9,`left:${cx-98}px;top:${1018}px;width:196px;z-index:10;transform:rotate(${[-2,1.5,-1.5,2][i]}deg)`,
+    `<svg width="196" height="40" style="position:absolute;inset:0;overflow:visible"><path d="${torn(196,40,30+i)}" fill="${C.ink}" opacity=".7" transform="translate(4 5)"/><path d="${torn(196,40,30+i)}" fill="${C.red}"/></svg><div class="lbl" style="position:relative;height:40px;line-height:40px;font-size:17px;letter-spacing:0">${NAMES[n]}</div>`));
+
+  // ── 7 print finish (under the typography, so text + logo stay sharp) ──
+  const fx=layer('07-print-grain',7,'overlay');const id=fx.createImageData(W,H),r=rng(9);
+  for(let i=0;i<W*H;i++){const v=128+(r()+r()+r()-1.5)*80;id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=v;id.data[i*4+3]=255}fx.putImageData(id,0,0);
+  const vg=layer('08-vignette',8);g=vg.createRadialGradient(W/2,H/2,380,W/2,H/2,900);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(8,3,10,.6)');vg.fillStyle=g;vg.fillRect(0,0,W,H);
+
+  // ── 9 logo on sign (kept above grain = sharp) ──────────────
+  div('09-merchant-sign-text',9,'left:300px;top:508px;width:492px;transform:skewY(-1.6deg)',
+    `<div class="lbl" style="font-size:17px;letter-spacing:.32em;color:${C.orange}">A HALLOWEEN POP-UP BY</div><img src="${word.src}" style="display:block;width:360px;margin:9px auto 0">`);
+
+  // ── 10 headline ────────────────────────────────────────────
+  const hs=`font-family:AB;color:${C.orange};line-height:1;letter-spacing:-4px;white-space:nowrap;text-shadow:7px 6px 0 ${C.red}`;
+  div('10-headline-WAKE',10,`left:58px;top:6px;font-size:212px;${hs}`,'WAKE');
+  div('10-headline-THE',10,`left:70px;top:208px;font-size:54px;writing-mode:vertical-rl;transform:rotate(180deg);font-family:AB;color:${C.paper};letter-spacing:4px;line-height:1`,'THE');
+  div('10-headline-DEAD',10,`left:140px;top:170px;font-size:212px;${hs}`,'DEAD');
+
+  // ── 11 invitation + event info ────────────────────────────
+  div('11-invitation',11,`top:1070px;width:${W}px`,`<div class="lbl" style="font-weight:500;font-size:22px;letter-spacing:.28em">SIP AND KILL · PULL UP TO THE BOOTH · JOIN THE CHAOS</div>`);
+  banner('12-banner-event',12,1106,760,80,-1.2,11,`<div style="font-size:27px">PUMP.BOYZ × EVPHORIA</div><div style="font-size:27px">HOUSE PARTY — HALLOWEEN SPECIAL</div>`);
+  banner('13-banner-date',12,1192,880,62,.8,23,`<div style="font-size:25px;letter-spacing:.08em">FRIDAY, OCTOBER 30, 2026 · DOORS OPEN AT 3 PM</div>`);
+  div('14-venue',13,`top:1272px;width:${W}px`,`<div class="lbl" style="font-size:20px;letter-spacing:.2em;color:${C.cream}">TWIN-PEAKS MOUNTAIN · BRGY. DAPDAP, TAYABAS CITY</div><div class="lbl" style="font-size:20px;letter-spacing:.34em;color:${C.orange};margin-top:9px">@TEROWNIE_CAFE</div>`);
+  document.title='ready';
+})();
+</script></body></html>
