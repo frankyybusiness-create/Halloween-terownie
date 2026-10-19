@@ -1,0 +1,138 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<script src="assets2.js"></script>
+<style>
+@font-face{font-family:'AB';src:url('/home/user/Halloween-terownie/node_modules/@fontsource/archivo-black/files/archivo-black-latin-400-normal.woff2')}
+@font-face{font-family:'SG';font-weight:500;src:url('/home/user/Halloween-terownie/node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-500-normal.woff2')}
+@font-face{font-family:'SG';font-weight:700;src:url('/home/user/Halloween-terownie/node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2')}
+html,body{margin:0;background:transparent}
+#p{position:relative;overflow:hidden;width:1080px;height:1350px}
+#p>*{position:absolute;left:0;top:0}
+.lbl{font-family:SG;font-weight:700;color:#FFF4DA;letter-spacing:.12em;text-align:center;white-space:nowrap}
+</style></head>
+<body><div id="p"></div>
+<script>
+const W=1080,H=1350,P=document.getElementById('p');
+const C={orange:'#FF8500',purple:'#32104D',violet:'#25102F',red:'#D7192D',burg:'#510C1A',ink:'#10090F',cream:'#F2DFB6',navy:'#17166F',paper:'#FFF4DA',lilac:'#9B5CFF'};
+function layer(name,z,blend){const c=document.createElement('canvas');c.width=W;c.height=H;c.dataset.layer=name;c.style.zIndex=z;if(blend)c.style.mixBlendMode=blend;P.appendChild(c);return c.getContext('2d')}
+function div(name,z,css,html){const d=document.createElement('div');d.dataset.layer=name;d.style.cssText+=`z-index:${z};`+css;d.innerHTML=html||'';P.appendChild(d);return d}
+function rng(s){return()=>{s=(s+0x6D2B79F5)|0;let t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}}
+const load=u=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=u});
+const svg=id=>load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(ASSETS[id].svg));
+function dots(ctx,color,spacing,size,clip){ctx.save();if(clip)clip(ctx);ctx.fillStyle=color;const t=Math.PI/4;ctx.beginPath();
+  for(let gy=-1600;gy<1600;gy+=spacing)for(let gx=-1600;gx<1600;gx+=spacing){const x=540+gx*Math.cos(t)-gy*Math.sin(t),y=675+gx*Math.sin(t)+gy*Math.cos(t);if(x<-10||y<-10||x>W+10||y>H+10)continue;const r=spacing*.55*size(x,y);if(r<.3)continue;ctx.moveTo(x+r,y);ctx.arc(x,y,r,0,7)}ctx.fill();ctx.restore()}
+function torn(w,h,seed){const r=rng(seed);let d=`M0 ${6+r()*8}`;for(let x=0;x<=w;x+=13)d+=`L${x} ${r()*11}`;d+=`L${w} ${h-r()*9}`;for(let x=w;x>=0;x-=13)d+=`L${x} ${h-r()*11}`;return d+'Z'}
+function banner(name,z,top,w,h,rot,seed,html,fill=C.red){
+  return div(name,z,`left:${(W-w)/2}px;top:${top}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg)`,
+   `<svg width="${w}" height="${h}" style="position:absolute;inset:0;overflow:visible"><path d="${torn(w,h,seed)}" fill="${C.ink}" opacity=".8" transform="translate(7 8)"/><path d="${torn(w,h,seed)}" fill="${fill}"/><path d="${torn(w,h,seed)}" fill="url(#bd${seed})" opacity=".3"/><defs><pattern id="bd${seed}" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="3.5" cy="3.5" r="1.3" fill="${C.burg}"/></pattern></defs></svg><div class="lbl" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center">${html}</div>`)}
+
+(async()=>{
+  for(const f of ["40px AB","500 20px SG","700 20px SG"])await document.fonts.load(f);
+  const A={};for(const id of Object.keys(ASSETS))A[id]=await svg(id);
+  const word=await load('/home/user/Halloween-terownie/public/brand/terownie-wordmark-cream.png');
+  const face=await load('/home/user/Halloween-terownie/public/brand/terownie-face-cream.png');
+  const BX=540,BY=660; // mirror ball
+
+  // ── 1 background ─────────────────────────────
+  const bg=layer('01-background',1);
+  let g=bg.createLinearGradient(0,0,0,H);g.addColorStop(0,'#2A0C45');g.addColorStop(.45,C.purple);g.addColorStop(.75,C.violet);g.addColorStop(1,'#0B050C');
+  bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  g=bg.createRadialGradient(BX,BY,30,BX,BY,620);g.addColorStop(0,'rgba(155,92,255,.55)');g.addColorStop(1,'rgba(155,92,255,0)');bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  g=bg.createRadialGradient(540,1250,40,540,1250,700);g.addColorStop(0,'rgba(215,25,45,.75)');g.addColorStop(1,'rgba(215,25,45,0)');bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  dots(bg,'rgba(150,80,230,.4)',8,(x,y)=>Math.max(0,1-Math.hypot(x-BX,y-BY)/800)*.9+.06);
+
+  // ── 2 lasers + spotlights ────────────────────
+  const lz=layer('02-lasers',2,'screen');lz.shadowColor='rgba(255,120,40,.8)';lz.shadowBlur=18;
+  const r=rng(4);
+  const beam=(x0,y0,ang,len,w,col)=>{const x1=x0+Math.cos(ang)*len,y1=y0+Math.sin(ang)*len,nx=-Math.sin(ang)*w,ny=Math.cos(ang)*w;
+    const gr=lz.createLinearGradient(x0,y0,x1,y1);gr.addColorStop(0,col);gr.addColorStop(1,'rgba(0,0,0,0)');lz.fillStyle=gr;lz.beginPath();lz.moveTo(x0,y0);lz.lineTo(x1+nx,y1+ny);lz.lineTo(x1-nx,y1-ny);lz.closePath();lz.fill()};
+  for(let i=0;i<26;i++){const a=r()*Math.PI*2;beam(BX,BY,a,700+r()*500,3+r()*7,i%3==0?'rgba(255,150,30,1)':i%3==1?'rgba(255,40,60,1)':'rgba(190,130,255,1)')}
+  for(const [x,a,c] of [[0,-0.95,'rgba(255,133,0,.35)'],[W,-2.2,'rgba(215,25,45,.38)'],[260,-1.3,'rgba(170,110,255,.28)'],[820,-1.85,'rgba(255,133,0,.25)']])beam(x,H,a,1500,150,c);
+
+  // ── 3 mirror ball ────────────────────────────
+  const mb=layer('03-mirror-ball',3);
+  mb.strokeStyle=C.ink;mb.lineWidth=6;mb.beginPath();mb.moveTo(BX,0);mb.lineTo(BX,BY-128);mb.stroke();
+  mb.fillStyle='#2B2440';mb.fillRect(BX-16,BY-140,32,20);
+  const R=108;mb.save();mb.beginPath();mb.arc(BX,BY,R,0,7);mb.clip();
+  mb.fillStyle='#3B3456';mb.fillRect(BX-R,BY-R,2*R,2*R);
+  const rr=rng(12);
+  for(let la=-80;la<80;la+=11){for(let lo=-90;lo<90;lo+=11){
+    const p=(a,o)=>{const A_=a*Math.PI/180,O=o*Math.PI/180;return[BX+R*Math.cos(A_)*Math.sin(O),BY+R*Math.sin(A_)]};
+    const q=[p(la,lo),p(la,lo+11),p(la+11,lo+11),p(la+11,lo)];
+    const light=(1-(lo+90)/180)*.6+(1-(la+80)/160)*.4;const v=rr();
+    const col=v>.93?'#FFF4DA':v>.86?C.orange:v>.8?C.lilac:`rgb(${90+light*120|0},${80+light*110|0},${120+light*120|0})`;
+    mb.beginPath();q.forEach(([x,y],i)=>i?mb.lineTo(x,y):mb.moveTo(x,y));mb.closePath();mb.fillStyle=col;mb.fill();mb.lineWidth=1.6;mb.strokeStyle='#1A1428';mb.stroke()}}
+  g=mb.createRadialGradient(BX+50,BY+40,10,BX+30,BY+30,R*1.4);g.addColorStop(0,'rgba(16,9,15,0)');g.addColorStop(1,'rgba(16,9,15,.75)');mb.fillStyle=g;mb.fillRect(BX-R,BY-R,2*R,2*R);
+  mb.restore();
+  mb.beginPath();mb.arc(BX,BY,R,0,7);mb.lineWidth=7;mb.strokeStyle=C.ink;mb.stroke();
+  const spark=(x,y,s)=>{mb.fillStyle=C.paper;mb.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,rad=i%2?s*.18:s;mb.lineTo(x+Math.cos(a)*rad,y+Math.sin(a)*rad)}mb.closePath();mb.fill()};
+  spark(BX-58,BY-60,34);spark(BX+80,BY-90,20);spark(BX-150,BY+40,16);spark(BX+160,BY+10,24);
+  for(const [id,x,y,s] of [['bat-up',250,470,130],['bat-glide',860,430,120],['bat-down',780,640,80],['bat-up',170,690,74],['bat-glide',940,300,70]])mb.drawImage(A[id],x-s/2,y,s,s*.75);
+
+  // ── 4 crowd (costumed silhouettes, hands + iced cups up) ──
+  const cr=layer('04-crowd',4);
+  const person=(x,base,s,col,rim,kind,arms,seed)=>{
+    const rn=rng(seed),hy=base-s*1.55,hr=s*.32;
+    cr.fillStyle=col;cr.strokeStyle=rim;
+    // shoulders/body
+    cr.beginPath();cr.moveTo(x-s*.75,base+s);cr.quadraticCurveTo(x-s*.72,hy+s*.6,x-s*.3,hy+s*.42);cr.lineTo(x+s*.3,hy+s*.42);cr.quadraticCurveTo(x+s*.72,hy+s*.6,x+s*.75,base+s);cr.closePath();cr.fill();
+    // raised arms
+    const hands=[];
+    for(const side of arms){const sx=x+side*s*.55,sy=hy+s*.62,ex=x+side*s*(.75+rn()*.35),ey=hy-s*(.75+rn()*.55);
+      cr.lineCap='round';cr.lineWidth=s*.2;cr.beginPath();cr.moveTo(sx,sy);cr.quadraticCurveTo(sx+side*s*.3,(sy+ey)/2,ex,ey);cr.strokeStyle=col;cr.stroke();
+      cr.beginPath();cr.arc(ex,ey,s*.14,0,7);cr.fillStyle=col;cr.fill();hands.push([ex,ey,side])}
+    // head / costume
+    cr.fillStyle=col;
+    if(kind==='ghost'){cr.beginPath();cr.moveTo(x-s*.55,base+s);cr.quadraticCurveTo(x-s*.6,hy-s*.5,x,hy-s*.55);cr.quadraticCurveTo(x+s*.6,hy-s*.5,x+s*.55,base+s);cr.fill();
+      cr.fillStyle=C.ink;cr.beginPath();cr.ellipse(x-s*.14,hy,s*.06,s*.1,0,0,7);cr.ellipse(x+s*.14,hy,s*.06,s*.1,0,0,7);cr.fill();cr.fillStyle=col}
+    else if(kind==='pumpkin'){cr.beginPath();cr.ellipse(x,hy,hr*1.35,hr*1.1,0,0,7);cr.fill();cr.fillRect(x-s*.04,hy-hr*1.5,s*.08,hr*.5);
+      cr.fillStyle=C.orange;cr.beginPath();cr.moveTo(x-hr*.6,hy-hr*.2);cr.lineTo(x-hr*.25,hy-hr*.05);cr.lineTo(x-hr*.55,hy+hr*.1);cr.moveTo(x+hr*.6,hy-hr*.2);cr.lineTo(x+hr*.25,hy-hr*.05);cr.lineTo(x+hr*.55,hy+hr*.1);cr.fill();
+      cr.fillRect(x-hr*.55,hy+hr*.35,hr*1.1,hr*.18);cr.fillStyle=col}
+    else{cr.beginPath();cr.arc(x,hy,hr,0,7);cr.fill();
+      if(kind==='witch'){cr.beginPath();cr.moveTo(x-hr*1.7,hy-hr*.5);cr.lineTo(x+hr*1.7,hy-hr*.5);cr.lineTo(x+hr*.7,hy-hr*.75);cr.lineTo(x+hr*.3,hy-hr*2.9);cr.lineTo(x-hr*.7,hy-hr*.75);cr.closePath();cr.fill()}
+      if(kind==='devil'){for(const sd of[-1,1]){cr.beginPath();cr.moveTo(x+sd*hr*.35,hy-hr*.8);cr.quadraticCurveTo(x+sd*hr*1.1,hy-hr*1.3,x+sd*hr*.95,hy-hr*2);cr.lineTo(x+sd*hr*.8,hy-hr*.6);cr.fill()}}
+      if(kind==='cat'){for(const sd of[-1,1]){cr.beginPath();cr.moveTo(x+sd*hr*.2,hy-hr*.85);cr.lineTo(x+sd*hr*.8,hy-hr*1.6);cr.lineTo(x+sd*hr*.95,hy-hr*.4);cr.fill()}}
+      if(kind==='party'){cr.beginPath();cr.moveTo(x-hr*.6,hy-hr*.7);cr.lineTo(x+hr*.6,hy-hr*.7);cr.lineTo(x+hr*.1,hy-hr*2.3);cr.fill()}
+      if(kind==='mask'){cr.fillStyle='rgba(242,223,182,.9)';cr.beginPath();cr.ellipse(x,hy+hr*.05,hr*.7,hr*.9,0,0,7);cr.fill();cr.fillStyle=C.ink;cr.beginPath();cr.ellipse(x-hr*.28,hy-hr*.1,hr*.14,hr*.25,0,0,7);cr.ellipse(x+hr*.28,hy-hr*.1,hr*.14,hr*.25,0,0,7);cr.ellipse(x,hy+hr*.45,hr*.12,hr*.2,0,0,7);cr.fill();cr.fillStyle=col}
+    }
+    return hands;
+  };
+  const rows=[{n:11,base:1040,s:60,col:'#2E0F40',rim:''},{n:9,base:1130,s:82,col:'#17071A',rim:''},{n:7,base:1250,s:110,col:C.ink,rim:''}];
+  const kinds=['witch','devil','pumpkin','plain','cat','ghost','party','plain','mask','devil','witch','plain'];
+  const cupIds=['iced-latte','iced-caramel','iced-black','iced-violet'];
+  let k=0,cupN=0;
+  rows.forEach((row,ri)=>{const rr2=rng(30+ri);
+    for(let i=0;i<row.n;i++){const x=(i+.5)*W/row.n+(rr2()-.5)*60;const kind=kinds[(k++)%kinds.length];
+      const arms=rr2()<.65?(rr2()<.5?[-1,1]:[rr2()<.5?-1:1]):[];
+      const hs=person(x,row.base+(rr2()-.5)*20,row.s,row.col,row.rim,kind,arms,k*7);
+      // rim light on front rows
+      if(ri>0)for(const [hx,hy,side] of hs){if(rr2()<.6&&cupN<6&&(hx<300||(hx>780&&hx<1000))&&hx>70){const id=cupIds[cupN++%4],a=A[id],h=row.s*1.25,w=h*a.width/a.height;cr.drawImage(a,hx-w/2,hy-h*.95,w,h)}}
+    }
+    if(ri<2){g=cr.createLinearGradient(0,row.base-260,0,row.base+200);g.addColorStop(0,'rgba(215,25,45,0)');g.addColorStop(1,'rgba(37,16,47,.35)');}
+  });
+  // red rim glow over the crowd tops
+  cr.globalCompositeOperation='source-atop';g=cr.createLinearGradient(0,700,0,1350);g.addColorStop(0,'rgba(215,25,45,.32)');g.addColorStop(.5,'rgba(120,20,60,.06)');g.addColorStop(1,'rgba(0,0,0,0)');cr.fillStyle=g;cr.fillRect(0,0,W,H);cr.globalCompositeOperation='source-over';
+
+  // ── 5 print finish ───────────────────────────
+  const fx=layer('05-print-grain',5,'overlay');const id=fx.createImageData(W,H),rg=rng(9);
+  for(let i=0;i<W*H;i++){const v=128+(rg()+rg()+rg()-1.5)*85;id.data[i*4]=id.data[i*4+1]=id.data[i*4+2]=v;id.data[i*4+3]=255}fx.putImageData(id,0,0);
+  const vg=layer('06-vignette',6);g=vg.createRadialGradient(W/2,H/2,380,W/2,H/2,900);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(8,3,10,.6)');vg.fillStyle=g;vg.fillRect(0,0,W,H);
+
+  // ── 7 typography ─────────────────────────────
+  div('07-presenter',8,`top:44px;width:${W}px`,`<div class="lbl" style="font-size:22px;letter-spacing:.42em;font-weight:500">PUMP.BOYZ × EVPHORIA PRESENT</div>`);
+  const hs=`font-family:AB;color:${C.orange};line-height:.9;letter-spacing:-3px;white-space:nowrap;text-shadow:6px 6px 0 ${C.red};text-align:center;width:${W}px`;
+  div('08-headline',9,`top:96px;${hs};font-size:150px`,'WAKE THE');
+  div('08-headline-DEAD',9,`top:228px;${hs};font-size:265px;letter-spacing:-6px`,'DEAD');
+  banner('09-banner-party',10,450,620,64,-2,7,`<div style="font-size:30px;letter-spacing:.16em">HOUSE PARTY</div>`);
+  div('09-halloween-special',10,`top:522px;width:${W}px`,`<div class="lbl" style="font-size:20px;letter-spacing:.5em;color:${C.cream}">— HALLOWEEN SPECIAL —</div>`);
+  // merchant lockup over the crowd
+  div('10-terownie-lockup',11,`top:782px;width:${W}px;display:flex;flex-direction:column;align-items:center`,
+   `<div class="lbl" style="font-size:20px;letter-spacing:.36em;color:${C.paper};text-shadow:0 2px 8px #10090F,2px 2px 0 ${C.red}">A HALLOWEEN POP-UP BY</div>
+    <img src="/home/user/Halloween-terownie/public/brand/terownie-logo-cream.png" style="width:300px;margin-top:10px;filter:drop-shadow(5px 6px 0 rgba(16,9,15,.95))">
+    <div style="font-family:AB;font-size:40px;color:${C.paper};letter-spacing:.06em;margin-top:8px;text-shadow:4px 4px 0 ${C.red}">SIP AND KILL</div>
+    <div class="lbl" style="font-weight:500;font-size:18px;letter-spacing:.3em;margin-top:4px;text-shadow:0 2px 6px #000">PULL UP TO THE BOOTH. GRAB YOUR SIP. JOIN THE CHAOS.</div>`);
+  banner('11-banner-date',12,1150,880,78,1,23,`<div style="font-size:30px;letter-spacing:.07em">FRIDAY · OCTOBER 30, 2026 · DOORS 3 PM</div>`);
+  div('12-venue',13,`top:1252px;width:${W}px`,`<div class="lbl" style="font-size:21px;letter-spacing:.2em;color:${C.cream}">TWIN-PEAKS MOUNTAIN · BRGY. DAPDAP, TAYABAS CITY</div><div class="lbl" style="font-size:20px;letter-spacing:.36em;color:${C.orange};margin-top:10px">@TEROWNIE_CAFE</div>`);
+  document.title='ready';
+})();
+</script></body></html>
