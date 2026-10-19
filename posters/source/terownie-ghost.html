@@ -1,0 +1,35 @@
+<!doctype html><html><body style="margin:0;background:transparent"><canvas id="c" width="760" height="900"></canvas>
+<script>
+const c=document.getElementById('c').getContext('2d');
+const NAVY='#17166F',CREAM='#F6ECD8',SH='#C9B9DA';
+function rng(s){return()=>{s=(s+0x6D2B79F5)|0;let t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}}
+function body(){c.beginPath();c.moveTo(150,820);
+ c.bezierCurveTo(120,620,110,420,170,270);c.bezierCurveTo(220,140,300,70,380,70);c.bezierCurveTo(470,70,550,140,595,270);
+ c.bezierCurveTo(650,420,640,620,610,820);
+ // wavy hem
+ const pts=[[610,820],[575,870],[540,830],[500,880],[455,836],[410,884],[365,838],[318,882],[272,836],[228,876],[190,828],[150,820]];
+ for(let i=1;i<pts.length;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i];c.quadraticCurveTo((x0+x1)/2,(y0+y1)/2+(i%2?18:-18),x1,y1)}
+ c.closePath()}
+const img=new Image();img.onload=()=>{
+ // arms (raised one holding a cup, one waving)
+ c.lineJoin='round';c.lineCap='round';
+ for(const [x,y,rx,ry,rot] of [[115,330,48,95,-.75],[640,520,44,88,.95]]){c.beginPath();c.ellipse(x,y,rx,ry,rot,0,7);c.fillStyle=CREAM;c.fill();c.lineWidth=14;c.strokeStyle=NAVY;c.stroke()}
+ body();c.fillStyle=CREAM;c.fill();
+ // folds / shading
+ c.save();body();c.clip();
+ c.fillStyle=SH;c.beginPath();c.moveTo(520,120);c.bezierCurveTo(640,300,650,620,600,900);c.lineTo(760,900);c.lineTo(760,0);c.fill();
+ c.strokeStyle='rgba(23,22,111,.35)';c.lineWidth=7;
+ for(const [x0,y0,x1,y1,cx] of [[300,560,250,830,240],[420,600,430,860,460],[520,520,560,820,580]]){c.beginPath();c.moveTo(x0,y0);c.quadraticCurveTo(cx,(y0+y1)/2,x1,y1);c.stroke()}
+ // dot shading
+ c.fillStyle='rgba(23,22,111,.55)';const r=rng(3);for(let y=80;y<900;y+=10)for(let x=380;x<760;x+=10){const k=(x-380)/380;const rad=4.4*k*k+(r()-.5)*.6;if(rad>.4){c.beginPath();c.arc(x+(y/10%2)*5,y,rad,0,7);c.fill()}}
+ c.restore();
+ body();c.lineWidth=16;c.strokeStyle=NAVY;c.stroke();
+ // the real Terownie spiral face
+ const fw=290,fh=fw*img.height/img.width;c.drawImage(img,380-fw/2-10,250,fw,fh);
+ // blush
+ c.fillStyle='rgba(240,45,53,.55)';c.beginPath();c.ellipse(255,450,34,16,0,0,7);c.ellipse(495,450,34,16,0,0,7);c.fill();
+ // little mouth
+ c.beginPath();c.ellipse(372,470,20,24,0,0,7);c.fillStyle=NAVY;c.fill();
+ document.title='ready'};
+img.src='/home/user/Halloween-terownie/public/brand/terownie-face-navy.png';
+</script></body></html>

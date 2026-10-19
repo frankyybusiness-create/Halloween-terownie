@@ -16,7 +16,7 @@ html,body{margin:0;background:transparent}
 const OR='#FF8A00', DRED='#A80E1C';
 (async()=>{
   await fonts(["40px BU","700 20px SY","500 20px SG"]);
-  const host=await load(ROOT+'public/brand/mascot-devil.png');
+  const host=await load(ROOT+'public/brand/terownie-ghost.png');
   const house=await load(ROOT+'public/event/party-house.png');
   const jack=await load(ROOT+'public/event/jack-cut.png');
   const cups=await Promise.all(['strawberry-matcha','taro-cloud','dirty-matcha'].map(n=>load(ROOT+'public/drinks/'+n+'.png')));
@@ -34,7 +34,7 @@ const OR='#FF8A00', DRED='#A80E1C';
 
   // the event's pumpkin-head host as the giant red "devil", left
   const ch=layer('03-pumpkin-host',3);
-  halftone(ch,host,-120,270,520,711,{color:'#FF2A35',plate:'#4A0610',spacing:6.5,gain:1.25,rot:.1,light:.9,lx:.6,ly:.15,seed:5});
+  halftone(ch,host,-150,300,560,663,{color:'#FF2A35',plate:'#4A0610',spacing:6.5,gain:1.25,rot:.1,light:.9,lx:.6,ly:.15,seed:5});
 
   // red ghosts of the crowd + big jack, bottom
   const bt=layer('04-jack',4);
