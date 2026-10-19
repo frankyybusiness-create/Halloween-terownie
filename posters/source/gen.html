@@ -1,0 +1,167 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:'AN';src:url('../../node_modules/@fontsource/anton/files/anton-latin-400-normal.woff2')}
+@font-face{font-family:'BB';src:url('../../node_modules/@fontsource/bebas-neue/files/bebas-neue-latin-400-normal.woff2')}
+@font-face{font-family:'BU';src:url('../../node_modules/@fontsource/bungee/files/bungee-latin-400-normal.woff2')}
+@font-face{font-family:'AB';src:url('../../node_modules/@fontsource/archivo-black/files/archivo-black-latin-400-normal.woff2')}
+@font-face{font-family:'PM';src:url('../../node_modules/@fontsource/permanent-marker/files/permanent-marker-latin-400-normal.woff2')}
+@font-face{font-family:'SG';font-weight:700;src:url('../../node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2')}
+html,body{margin:0;background:transparent}
+#p{position:relative;overflow:hidden;width:1080px;height:1350px}
+#p>*{position:absolute;left:0;top:0}
+.sg{font-family:SG;font-weight:700;white-space:nowrap;letter-spacing:.06em}
+</style></head>
+<body><div id="p"></div>
+<script src="lib.js"></script>
+<script>
+// Parametric poster generator: ?i=0..99 -> one option. Texture modelled on the "WAKE THE DEAD" reference:
+// aged torn poster paper, distressed condensed headline with photo faces printed inside the letters,
+// marker-script tagline, torn info strip, dot screen + grain + scratches + folds.
+const PAL=[
+ {n:'blood', bg:'#140708',dark:'#140708',main:'#E3262F',light:'#F4E6D6',strip:'#E3262F',stripText:'#140708',duo:'#E8434B',logo:'cream'},
+ {n:'disco', bg:'#2B0E66',dark:'#160A2C',main:'#FF8A00',light:'#FFFFFF',strip:'#A80E1C',stripText:'#FFFFFF',duo:'#FF7A1A',logo:'white'},
+ {n:'gazette',bg:'#2457E6',dark:'#0B0B14',main:'#0B0B14',light:'#0B0B14',strip:'#0B0B14',stripText:'#2457E6',duo:'#2457E6',logo:'black',paper:true},
+ {n:'matcha', bg:'#0E180E',dark:'#0A110A',main:'#9BD14B',light:'#F4E6D6',strip:'#E3262F',stripText:'#F4E6D6',duo:'#7FB33A',logo:'cream'},
+ {n:'cream',  bg:'#E9D6AE',dark:'#1A0D0D',main:'#C8161E',light:'#1A0D0D',strip:'#C8161E',stripText:'#F4E6D6',duo:'#E9D6AE',logo:'black',paper:true},
+ {n:'toxic',  bg:'#120709',dark:'#120709',main:'#FF5A1F',light:'#F4E6D6',strip:'#FF5A1F',stripText:'#120709',duo:'#FF6A2A',logo:'cream'},
+];
+const FONTS=['AN','BB','BU','AB'];
+const q=new URLSearchParams(location.search), I=+(q.get('i')||0);
+const pal=PAL[Math.floor(I/4)%6], layout=I%4; let hero=(I*7+Math.floor(I/24))%3; if(pal.paper&&layout!==3)hero=2; const font=FONTS[(I*5+Math.floor(I/12))%4];
+const swap=Math.floor(I/2)%2===1;            // which line is the headline vs the script tagline
+const R=rng(1000+I);
+const HEAD=swap?['SIP AND','KILL']:['WAKE','THE DEAD'], SCRIPT=swap?'Wake the Dead':'Sip and Kill';
+
+function heroPhoto(ctx,img,x,y,w,h,{feather=110,alpha=1,contrast=1.45,sx=0,sy=0,sw=img.width,sh=img.height}={}){
+  const c=canvas(w,h),cc=c.getContext('2d');
+  const s=canvas(w,h);s.getContext('2d').drawImage(img,sx,sy,sw,sh,0,0,w,h);
+  duotone(cc,s,0,0,w,h,pal.dark,pal.duo,{contrast});
+  cc.globalCompositeOperation='destination-in';
+  const m=canvas(w,h),mc=m.getContext('2d');mc.fillStyle='#000';mc.fillRect(0,0,w,h);mc.globalCompositeOperation='destination-out';
+  for(const [x0,y0,x1,y1] of [[0,0,feather,0],[w,0,w-feather,0],[0,0,0,feather],[0,h,0,h-feather]]){const g=mc.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,'#000');g.addColorStop(1,'rgba(0,0,0,0)');mc.fillStyle=g;mc.fillRect(0,0,w,h)}
+  cc.drawImage(m,0,0);
+  ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(c,x,y);ctx.restore();
+}
+function cupImg(ctx,img,cx,cy,h,rot,glow=true){const w=h*img.width/img.height;ctx.save();if(glow&&!pal.paper){ctx.shadowColor=pal.main+'cc';ctx.shadowBlur=50}else{ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowOffsetX=8;ctx.shadowOffsetY=10}ctx.translate(cx,cy);ctx.rotate(rot);ctx.drawImage(img,-w/2,-h/2,w,h);ctx.restore()}
+
+/** Distressed condensed headline; photos printed inside the letters (like the reference). */
+function headline(lines,x,y,w,maxSize,align,inside,maxH=9999){
+  const L=layer('04-headline',6);
+  const k=font==='BU'?[.78,1.08]:[.86,1.0];
+  let sizes=lines.map(t=>{L.font=`100px ${font}`;return Math.min(maxSize*(t.length<=4?1:.92),w/L.measureText(t).width*100)});
+  const tot=sizes.reduce((a,z)=>a+z*k[0]*k[1]+z*.04,0);if(tot>maxH)sizes=sizes.map(z=>z*maxH/tot);
+  let yy=y;
+  L.save();L.translate(x+w/2,y);L.rotate((R()-.5)*.04);L.translate(-(x+w/2),-y);
+  lines.forEach((t,j)=>{const size=sizes[j];L.font=`${size}px ${font}`;const tw=L.measureText(t).width;const asc=size*k[0];
+    const tx=align==='center'?x+(w-tw)/2:align==='right'?x+w-tw:x;L.fillStyle=pal.main;L.fillText(t,tx,yy+asc);yy+=asc*k[1]+size*.04});
+  L.restore();
+  if(inside){L.globalCompositeOperation='source-atop';
+    inside.forEach(([img,ix,iy,iw,ih])=>{const c=canvas(iw,ih);duotone(c.getContext('2d'),img,0,0,iw,ih,pal.dark,pal.main,{contrast:1.3});L.globalAlpha=.32;L.drawImage(c,ix,iy)});
+    L.globalAlpha=1;L.globalCompositeOperation='source-over'}
+  inkWear(L,.28,40+I);
+  return yy;
+}
+function script(t,x,y,size,rot,color){div('05-script',9,`left:${x}px;top:${y}px;transform:rotate(${rot}deg);transform-origin:left`,`<div style="font-family:PM;font-size:${size}px;color:${color};white-space:nowrap;text-shadow:4px 4px 0 ${pal.dark}">${t}</div>`)}
+function txt(name,x,y,html,size,color,css=''){div(name,9,`left:${x}px;top:${y}px;${css}`,`<div class="sg" style="font-size:${size}px;color:${color}">${html}</div>`)}
+function note(x,y,rot){const w=250,h=126;div('07-note',10,`left:${x}px;top:${y}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg)`,
+  `<svg width="${w}" height="${h}" style="position:absolute;inset:0;overflow:visible"><path d="${tornPath(w,h,70+I)}" fill="#EBDDBE" transform="translate(5 6)" opacity=".35"/><path d="${tornPath(w,h,70+I)}" fill="#EBDDBE"/></svg><div class="sg" style="position:absolute;inset:16px 14px;font-size:21px;line-height:1.15;color:#1A0D0D;white-space:normal">PULL UP<br>TO THE BOOTH.<br>GRAB YOUR SIP.<br>JOIN THE CHAOS.</div>`)}
+function logoDiv(x,y,w){div('08-logo',10,`left:${x}px;top:${y}px;width:${w}px`,`<img src="${ROOT}public/brand/terownie-logo-${pal.logo}.png" style="width:100%;filter:drop-shadow(4px 5px 0 ${pal.paper?'rgba(0,0,0,.18)':'rgba(0,0,0,.7)'})">`)}
+function infoStrip(y){
+  const w=1010,h=158,x=35;
+  div('09-info-strip',11,`left:${x}px;top:${y}px;width:${w}px;height:${h}px;transform:rotate(${(R()-.5)*1.4}deg)`,
+   `<svg width="${w}" height="${h}" style="position:absolute;inset:0;overflow:visible"><path d="${tornPath(w,h,90+I)}" fill="${pal.dark}" transform="translate(7 8)" opacity=".6"/><path d="${tornPath(w,h,90+I)}" fill="${pal.strip}"/></svg>
+   <div style="position:absolute;inset:18px 30px;display:flex;align-items:center;gap:26px;color:${pal.stripText}">
+     <div><div class="sg" style="font-size:24px">FRIDAY,</div><div style="font-family:AN;font-size:54px;line-height:1;white-space:nowrap">OCT 30, 2026</div><div class="sg" style="font-size:19px">DOORS OPEN AT 3 PM</div></div>
+     <div style="width:4px;height:100px;background:${pal.stripText}"></div>
+     <div><div style="font-family:AN;font-size:40px;line-height:1;white-space:nowrap">TWIN-PEAKS MOUNTAIN</div><div class="sg" style="font-size:20px;margin-top:4px">BRGY. DAPDAP, TAYABAS CITY</div></div>
+     <div class="sg" style="margin-left:auto;font-size:18px;border:3px solid ${pal.stripText};padding:8px 10px">@TEROWNIE_CAFE</div>
+   </div>`)}
+
+(async()=>{
+  await fonts(['40px AN','40px BB','40px BU','40px AB','40px PM','700 20px SG']);
+  const ph=n=>load(ROOT+'public/photos/'+n+'.jpg');
+  const [slasher,c1,c2,c3,c4]=await Promise.all(['slasher-cc0','crowd-clown','crowd-zombie-girl','crowd-zombie-nurse','crowd-street'].map(ph));
+  const crowd=[c1,c2,c3,c4];for(let k=crowd.length-1;k>0;k--){const j=Math.floor(R()*(k+1));[crowd[k],crowd[j]]=[crowd[j],crowd[k]]}
+  const cups=await Promise.all(['strawberry-matcha','taro-cloud','dirty-matcha','biscoff-sea-salt'].map(n=>load(ROOT+'public/drinks/'+n+'.png')));
+  const cupMain=cups[[0,0,2,1,0,3][PAL.indexOf(pal)]];
+
+  // 1 background + low-opacity real costumed crowd
+  const bg=layer('01-background',1);
+  bg.fillStyle=pal.bg;bg.fillRect(0,0,W,H);
+  const cr=canvas(W,H),cc=cr.getContext('2d');
+  [[-140,260],[540,220],[-120,760],[520,800]].forEach(([x,y],k)=>duotone(cc,crowd[k],x,y,700,467,pal.dark,pal.duo,{contrast:1.5}));
+  bg.globalAlpha=pal.paper?.28:.42;bg.drawImage(cr,0,0);bg.globalAlpha=1;
+  if(!pal.paper){let g=bg.createLinearGradient(0,0,0,H);g.addColorStop(0,pal.bg+'f2');g.addColorStop(.35,pal.bg+'66');g.addColorStop(.8,pal.bg+'33');g.addColorStop(1,pal.bg+'ee');bg.fillStyle=g;bg.fillRect(0,0,W,H);
+    g=bg.createRadialGradient(W*(.3+R()*.4),H*.45,20,W*.5,H*.45,650);g.addColorStop(0,pal.main+'55');g.addColorStop(1,pal.main+'00');bg.fillStyle=g;bg.fillRect(0,0,W,H)}
+
+  // hero
+  const HL=layer('03-hero',4);
+  const heroAt=(x,y,w,h)=>{
+    if(hero<2){heroPhoto(HL,slasher,x,y,w,h,{feather:120,sx:40,sw:813,contrast:1.9});
+      if(hero===0)cupImg(HL,cupMain,x+w*.56,y+h*.80,h*.34,-.12);
+      else [[.2,-.14],[.5,0],[.8,.14]].forEach(([fx,r],k)=>cupImg(HL,cups[k],x+w*fx,y+h*.9,h*.28,r));
+    }else{
+      [[.22,-.18,.62],[.5,0,.74],[.78,.18,.62]].forEach(([fx,r,s],k)=>cupImg(HL,cups[[0,2,1][k]],x+w*fx,y+h*.42,h*s*.9,r));
+    }};
+
+  // layouts
+  const pres=`PUMP.BOYZ &nbsp;×&nbsp; EVPHORIA`;
+  const inside=[[crowd[0],40,60,760,507],[slasher,560,40,420,630]];
+  if(layout===0){ // stacked headline left, hero right (like the reference)
+    txt('02-presenters',44,40,pres,22,pal.light);
+    div('02-houseparty',9,`right:44px;top:34px;text-align:right`,`<div style="font-family:AN;font-size:42px;color:${pal.main};line-height:1">HOUSE PARTY</div><div class="sg" style="font-size:18px;color:${pal.light}">HALLOWEEN SPECIAL</div>`);
+    const yy=headline(HEAD,40,86,660,300,'left',inside,470);
+    heroAt(380,Math.max(380,yy-60),700,1000);
+    logoDiv(720,130,320);note(790,320,4);
+    script(SCRIPT,50,yy+20,86,-7,pal.light);
+    txt('06-popup-by',58,yy+150,'A HALLOWEEN POP-UP<br>BY TEROWNIE',22,pal.light,'line-height:1.25');
+    infoStrip(1160);
+  }else if(layout===1){ // centred headline top, hero centre, corners info, logo row
+    txt('02-presenters',0,48,pres,22,pal.main,`width:${W}px;text-align:center`);
+    const yy=headline([HEAD.join(' ')],50,84,980,250,'center',inside);
+    txt('03-sub',0,yy+14,'A &nbsp; H A L L O W E E N &nbsp; P O P - U P',26,pal.light,`width:${W}px;text-align:center`);
+    heroAt(200,yy+40,680,900);
+    div('06-date',9,`right:50px;top:${yy+90}px;text-align:right`,`<div class="sg" style="font-size:22px;color:${pal.light}">FRIDAY, OCTOBER 30</div><div class="sg" style="font-size:30px;color:${pal.light}">DOORS OPEN 3 PM</div><div style="font-family:${font};font-size:150px;line-height:1;color:${pal.main}">10.30</div>`);
+    script(SCRIPT,40,yy+130,78,-8,pal.light);note(40,yy+330,-4);
+    div('06-venue',9,`right:50px;top:1050px;text-align:right`,`<div class="sg" style="font-size:30px;color:${pal.light}">TWIN-PEAKS MOUNTAIN</div><div class="sg" style="font-size:18px;color:${pal.light}">BRGY. DAPDAP, TAYABAS CITY</div>`);
+    div('06-handle',9,`left:50px;top:1070px`,`<div class="sg" style="font-size:20px;color:${pal.light}">@TEROWNIE_CAFE</div>`);
+    div('08-logo-row',10,`top:1200px;width:${W}px;display:flex;justify-content:center;align-items:center;gap:40px`,
+      `<img src="${ROOT}public/brand/terownie-logo-${pal.logo}.png" style="height:96px"><div style="width:3px;height:64px;background:${pal.light}"></div><div class="sg" style="font-size:26px;color:${pal.light}">PUMP.BOYZ</div><div style="width:3px;height:64px;background:${pal.light}"></div><div class="sg" style="font-size:26px;color:${pal.light}">EVPHORIA</div>`);
+  }else if(layout===2){ // hero big on top, headline at the bottom
+    logoDiv(40,40,250);
+    div('02-presenters',9,`right:44px;top:44px;text-align:right`,`<div class="sg" style="font-size:22px;color:${pal.light}">${pres}</div><div style="font-family:AN;font-size:40px;color:${pal.main};line-height:1.1">HOUSE PARTY</div><div class="sg" style="font-size:17px;color:${pal.light}">HALLOWEEN SPECIAL</div>`);
+    heroAt(170,60,740,1000);
+    note(800,520,5);
+    headline(HEAD,40,770,1000,230,R()<.5?'left':'center',inside.map(([im,x,y,w,h])=>[im,x,y+700,w,h]));
+    div('05-script',9,`right:50px;top:670px;transform:rotate(-7deg)`,`<div style="font-family:PM;font-size:74px;color:${pal.light};white-space:nowrap;text-shadow:4px 4px 0 ${pal.dark}">${SCRIPT}</div>`);
+    infoStrip(1165);
+  }else{ // boxed gazette
+    const B=layer('02-frame',5);B.strokeStyle=pal.light;B.lineWidth=10;B.strokeRect(30,30,W-60,H-60);B.lineWidth=3;B.strokeRect(44,44,W-88,H-88);
+    B.fillStyle=pal.light;B.fillRect(44,470,W-88,8);B.fillRect(44,820,W-88,8);B.fillRect(560,478,6,342);
+    txt('02-presenters',64,56,'★ '+pres+' · HOUSE PARTY — HALLOWEEN SPECIAL ★',17,pal.light);
+    headline(HEAD,60,90,620,260,'left',inside,360);
+    HL.save();HL.beginPath();HL.rect(690,86,346,380);HL.clip();heroAt(640,70,450,560);HL.restore();
+    B.strokeRect(690,86,346,380);
+    div('06-facts',9,`left:70px;top:494px;width:470px`,`<div style="font-family:${font};font-size:118px;line-height:.95;color:${pal.main}">10.30</div><div style="font-family:AN;font-size:56px;color:${pal.light};line-height:1">FRI · 3 PM</div><div style="font-family:AN;font-size:40px;color:${pal.light};line-height:1.1;margin-top:8px">TWIN-PEAKS MOUNTAIN</div><div class="sg" style="font-size:18px;color:${pal.light}">BRGY. DAPDAP, TAYABAS CITY</div>`);
+    div('06-list',9,`left:590px;top:500px`,`<div style="font-family:AN;font-size:34px;line-height:1.3;color:${pal.light}">AT THE BOOTH:<br>★ STRAWBERRY MATCHA<br>★ TARO CLOUD<br>★ DIRTY MATCHA<br>★ BISCOFF SEA SALT</div>`);
+    const band=canvas(992,470);duotone(band.getContext('2d'),crowd[1],0,-60,992,661,pal.dark,pal.duo,{contrast:1.6});HL.globalAlpha=.85;HL.drawImage(band,44,830);HL.globalAlpha=1;
+    [[.62,-.12],[.78,.04],[.92,.16]].forEach(([fx,r],k)=>cupImg(HL,cups[k],44+992*fx,1060,300,r,false));
+    script(SCRIPT,70,850,84,-6,pal.paper?'#F4E6D6':pal.light);
+    div('08-logo',10,`left:70px;top:1110px;background:${pal.paper?pal.bg:pal.dark};padding:14px 20px;border:4px solid ${pal.light}`,`<img src="${ROOT}public/brand/terownie-logo-${pal.logo}.png" style="width:230px;display:block"><div class="sg" style="font-size:18px;color:${pal.light};margin-top:6px;text-align:center">@TEROWNIE_CAFE</div>`);
+  }
+
+  // aged poster finish (dot screen, folds, scratches, scuffed edges, grain)
+  dotScreen(3,pal.paper?'rgba(0,0,0,.10)':'rgba(0,0,0,.38)',6,1.5);
+  const F=layer('13-aged-paper',13);
+  F.lineCap='round';
+  for(let k=0;k<3;k++){const vertical=k<2,p=vertical?W*(.3+R()*.4):H*(.35+R()*.3);F.lineWidth=2;F.strokeStyle='rgba(255,240,215,.22)';F.beginPath();vertical?(F.moveTo(p,0),F.lineTo(p+R()*8-4,H)):(F.moveTo(0,p),F.lineTo(W,p+R()*8-4));F.stroke();F.strokeStyle='rgba(0,0,0,.25)';F.lineWidth=3;F.beginPath();vertical?(F.moveTo(p+3,0),F.lineTo(p+3,H)):(F.moveTo(0,p+3),F.lineTo(W,p+3));F.stroke()}
+  F.strokeStyle='rgba(245,230,205,.5)';for(let k=0;k<160;k++){const x=R()*W,y=R()*H,l=10+R()*90,a=R()*Math.PI;F.lineWidth=.5+R()*1.2;F.globalAlpha=.2+R()*.5;F.beginPath();F.moveTo(x,y);F.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l);F.stroke()}F.globalAlpha=1;
+  const ed=noiseCanvas(W,H,6,300+I).getContext('2d').getImageData(0,0,W,H).data,sid=F.getImageData(0,0,W,H),sd=sid.data;
+  for(let y=0,k=0;y<H;y++)for(let x=0;x<W;x++,k+=4){const e=Math.min(x,y,W-x,H-y);if(e<22&&ed[k]/255>.62+e/60){sd[k]=232;sd[k+1]=215;sd[k+2]=176;sd[k+3]=pal.paper?90:150}}
+  F.putImageData(sid,0,0);
+  let g=F.createRadialGradient(W/2,H/2,420,W/2,H/2,900);g.addColorStop(0,'rgba(40,20,10,0)');g.addColorStop(1,'rgba(40,20,10,.5)');F.fillStyle=g;F.fillRect(0,0,W,H);
+  retroFinish(14,.9);
+  document.title='ready';
+})();
+</script></body></html>
