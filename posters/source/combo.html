@@ -1,0 +1,194 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<script src="assets3.js"></script>
+<style>
+@font-face{font-family:'CR';src:url('/home/user/Halloween-terownie/node_modules/@fontsource/creepster/files/creepster-latin-400-normal.woff2')}
+@font-face{font-family:'AB';src:url('/home/user/Halloween-terownie/node_modules/@fontsource/archivo-black/files/archivo-black-latin-400-normal.woff2')}
+@font-face{font-family:'PM';src:url('/home/user/Halloween-terownie/node_modules/@fontsource/permanent-marker/files/permanent-marker-latin-400-normal.woff2')}
+@font-face{font-family:'BG';src:url('/home/user/Halloween-terownie/node_modules/@fontsource/bangers/files/bangers-latin-400-normal.woff2')}
+html,body{margin:0;background:transparent}
+#p{position:relative;overflow:hidden;width:1080px;height:1350px}
+#p>*{position:absolute;left:0;top:0}
+.cr{font-family:CR;line-height:.95;white-space:nowrap}
+.bg{font-family:BG;letter-spacing:.04em;line-height:1.05;white-space:nowrap}
+</style></head>
+<body><div id="p"></div>
+<script>
+const W=1080,H=1350,P=document.getElementById('p');
+const C={orange:'#FF8A1E',red:'#E8202E',yellow:'#FFD23F',ink:'#10090F',cream:'#EEDDB4',paper:'#F6E9C8',navy:'#17166F',violet:'#B05CFF',teal:'#1F6E86',pink:'#F2A7D2',olive:'#6E6A2C',pool:'#23A9CF',deck:'#5A2A86'};
+function layer(name,z,blend){const c=document.createElement('canvas');c.width=W;c.height=H;c.dataset.layer=name;c.style.zIndex=z;if(blend)c.style.mixBlendMode=blend;P.appendChild(c);return c.getContext('2d')}
+function div(name,z,css,html){const d=document.createElement('div');d.dataset.layer=name;d.style.cssText+=`z-index:${z};`+css;d.innerHTML=html||'';P.appendChild(d);return d}
+function rng(s){return()=>{s=(s+0x6D2B79F5)|0;let t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296}}
+const load=u=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=u});
+const svgImg=s=>load('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s));
+function rect(ctx,x,y,w,h,fill){ctx.fillStyle=fill;ctx.fillRect(x,y,w,h)}
+function frame(ctx,x,y,w,h,lw=9){ctx.lineWidth=lw;ctx.strokeStyle=C.ink;ctx.lineJoin='round';const r=rng(x+y);ctx.beginPath();ctx.moveTo(x+r()*2,y+r()*2);ctx.lineTo(x+w+r()*2,y+r()*2);ctx.lineTo(x+w+r()*2,y+h+r()*2);ctx.lineTo(x+r()*2,y+h+r()*2);ctx.closePath();ctx.stroke()}
+function dots(ctx,x,y,w,h,color,spacing,size){ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.fillStyle=color;ctx.beginPath();const t=Math.PI/4;
+  for(let gy=-1600;gy<1600;gy+=spacing)for(let gx=-1600;gx<1600;gx+=spacing){const px=540+gx*Math.cos(t)-gy*Math.sin(t),py=675+gx*Math.sin(t)+gy*Math.cos(t);if(px<x-8||py<y-8||px>x+w+8||py>y+h+8)continue;const r=spacing*.5*size(px,py);if(r<.3)continue;ctx.moveTo(px+r,py);ctx.arc(px,py,r,0,7)}ctx.fill();ctx.restore()}
+function palm(ctx,x,base,h,lean,col=C.ink){ctx.fillStyle=col;ctx.strokeStyle=col;ctx.lineCap='round';
+  const tx=x+lean,ty=base-h;ctx.lineWidth=h*.06;ctx.beginPath();ctx.moveTo(x,base);ctx.quadraticCurveTo(x+lean*.2,base-h*.5,tx,ty);ctx.stroke();
+  for(let i=0;i<8;i++){const a=-Math.PI/2+(i-3.5)*0.42+(i>3?.2:-.2),L=h*(.48+(i%3)*.06);const ex=tx+Math.cos(a)*L,ey=ty+Math.sin(a)*L*.55+L*.35;
+    ctx.beginPath();ctx.moveTo(tx,ty);ctx.quadraticCurveTo(tx+Math.cos(a)*L*.5,ty+Math.sin(a)*L*.7-h*.06,ex,ey);ctx.quadraticCurveTo(tx+Math.cos(a)*L*.55,ty+Math.sin(a)*L*.55+h*.04,tx,ty+3);ctx.fill()}}
+
+function poly(ctx,pts){ctx.beginPath();pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.closePath()}
+function fillPoly(ctx,pts,fill,stroke,lw=6){poly(ctx,pts);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.lineWidth=lw;ctx.lineJoin='round';ctx.strokeStyle=stroke;ctx.stroke()}}
+// dot screen clipped to a polygon; size(x,y) in 0..1
+function pdots(ctx,pts,color,spacing,size,angle=45){ctx.save();poly(ctx,pts);ctx.clip();ctx.fillStyle=color;const t=angle*Math.PI/180;ctx.beginPath();
+  for(let gy=-1600;gy<1600;gy+=spacing)for(let gx=-1600;gx<1600;gx+=spacing){const x=540+gx*Math.cos(t)-gy*Math.sin(t),y=675+gx*Math.sin(t)+gy*Math.cos(t);if(x<-10||y<-10||x>W+10||y>H+10)continue;const r=spacing*.55*size(x,y);if(r<.3)continue;ctx.moveTo(x+r,y);ctx.arc(x,y,r,0,7)}
+  ctx.fill();ctx.restore()}
+function drawBooth(A,face,word){
+  const o=document.createElement('canvas');o.width=W;o.height=H;const ctx=o.getContext('2d');
+  const C={orange:'#FF8500',ink:'#10090F',cream:'#F2DFB6',navy:'#17166F',burg:'#510C1A',paper:'#FFF4DA'};
+  let g;
+  const ms=ctx;
+  const head=[];for(let i=0;i<=40;i++){const a=Math.PI+i/40*Math.PI;head.push([545+Math.cos(a)*270,520+Math.sin(a)*265])}
+  head.push([815,560],[275,560]);
+  ms.save();ms.shadowColor='rgba(255,120,30,.45)';ms.shadowBlur=40;fillPoly(ms,head,C.navy);ms.restore();
+  pdots(ctx,head,'rgba(103,41,166,.85)',7,(x,y)=>Math.min(1,Math.max(0,(x-480)/320)+.12));
+  fillPoly(ms,head,null,C.ink,9);
+  // rim light
+  ms.save();poly(ms,head);ms.clip();ms.lineWidth=10;ms.strokeStyle='rgba(255,133,0,.75)';ms.beginPath();ms.arc(545,520,262,Math.PI*1.08,Math.PI*1.45);ms.stroke();ms.restore();
+  const fw=300,fh=fw*face.height/face.width;ms.drawImage(face,545-fw/2,352,fw,fh);
+  // hands gripping the sign
+  for(const [x,flip] of [[318,1],[772,-1]]){const hp=[[x-34*flip,520],[x-30*flip,488],[x-10*flip,478],[x+14*flip,482],[x+30*flip,496],[x+32*flip,520]];fillPoly(ms,hp,C.navy,C.ink,7);
+    for(const k of [-12,4,20]){ms.beginPath();ms.moveTo(x+k*flip,484);ms.lineTo(x+k*flip,508);ms.lineWidth=4;ms.strokeStyle=C.ink;ms.stroke()}}
+
+  // ── 5 booth (three-quarter view) ──────────────────────────
+  const b=ctx;
+  // glow under awning
+  g=b.createRadialGradient(560,740,10,560,740,330);g.addColorStop(0,'rgba(255,133,0,.75)');g.addColorStop(1,'rgba(255,60,20,0)');b.fillStyle=g;b.beginPath();b.ellipse(560,750,330,150,0,0,7);b.fill();
+  // posts
+  for(const [x,y0,y1] of [[258,826,650],[775,802,640]])fillPoly(b,[[x-7,y1],[x+7,y1],[x+7,y0],[x-7,y0]],'#2A1A5E',C.ink,5);
+  // counter side + front + top
+  const side=[[250,826],[312,850],[312,1010],[250,982]],front=[[312,850],[832,824],[832,990],[312,1010]];
+  fillPoly(b,side,'#0E0D45',C.ink,8);pdots(b,side,'rgba(0,0,0,.5)',6,()=>.8);
+  fillPoly(b,front,C.navy,null);pdots(b,front,'rgba(103,41,166,.9)',6.5,(x,y)=>.25+(x-312)/520*.55);
+  g=b.createLinearGradient(0,850,0,1000);g.addColorStop(0,'rgba(255,120,30,.35)');g.addColorStop(1,'rgba(255,120,30,0)');b.fillStyle=g;poly(b,front);b.fill();
+  fillPoly(b,front,null,C.ink,8);
+  // front trim
+  fillPoly(b,[[330,866],[814,842],[814,976],[330,994]],null,C.cream,4);
+  // SIP AND KILL on the counter, following its perspective
+  b.save();b.setTransform(1,-0.05,0,1,0,0);b.font="58px AB";b.textAlign='center';b.fillStyle=C.ink;b.fillText('SIP AND KILL',577,986);b.fillStyle=C.orange;b.fillText('SIP AND KILL',572,981);b.restore();
+  const top=[[244,822],[766,798],[842,820],[306,846]];fillPoly(b,top,C.cream,C.ink,7);
+  fillPoly(b,[[306,846],[842,820],[842,832],[306,860]],'#B9A27A',C.ink,5);
+  // front posts
+  for(const [x,y0,y1] of [[318,846,690],[826,820,668]])fillPoly(b,[[x-9,y1],[x+9,y1],[x+9,y0],[x-9,y0]],'#3A2380',C.ink,6);
+  // awning stripes
+  const n=8,back=[[230,640],[805,620]],fr=[[282,700],[866,674]];
+  const lerp=(p,q,t)=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];
+  for(let i=0;i<n;i++){const a0=lerp(back[0],back[1],i/n),a1=lerp(back[0],back[1],(i+1)/n),f0=lerp(fr[0],fr[1],i/n),f1=lerp(fr[0],fr[1],(i+1)/n);fillPoly(b,[a0,a1,f1,f0],i%2?C.cream:C.navy)}
+  for(let i=0;i<n;i++){const f0=lerp(fr[0],fr[1],i/n),f1=lerp(fr[0],fr[1],(i+1)/n),m=lerp(f0,f1,.5),r=(f1[0]-f0[0])/2;b.beginPath();b.moveTo(f0[0],f0[1]);b.ellipse(m[0],m[1],r,24,Math.atan2(f1[1]-f0[1],f1[0]-f0[0]),Math.PI,0,true);b.closePath();b.fillStyle=i%2?C.cream:C.navy;b.fill();b.lineWidth=5;b.strokeStyle=C.ink;b.stroke()}
+  fillPoly(b,[back[0],back[1],fr[1],fr[0]],null,C.ink,7);
+  // pumpkin bunting
+  for(let i=0;i<7;i++){const p=lerp([300,742],[846,716],(i+.5)/7);b.beginPath();b.arc(p[0],p[1]+Math.sin(i)*3,11,0,7);b.fillStyle=C.orange;b.fill();b.lineWidth=3;b.strokeStyle=C.ink;b.stroke()}
+  b.beginPath();b.moveTo(292,732);b.quadraticCurveTo(570,748,856,708);b.lineWidth=2.5;b.strokeStyle=C.ink;b.stroke();
+  // sign board with the real wordmark
+  const sign=[[300,496],[792,482],[792,612],[300,622]];fillPoly(b,sign,C.navy,C.ink,9);
+  fillPoly(b,[[314,508],[778,496],[778,600],[314,610]],null,C.cream,4);
+  for(const [x,y0,y1] of [[350,620,690],[742,610,675]])fillPoly(b,[[x-5,y0],[x+5,y0],[x+5,y1],[x-5,y1]],C.ink);
+  // cups on the counter
+  for(const [id,x,h] of [['iced-latte',372,138],['iced-caramel',462,128],['iced-black',652,132],['iced-violet',744,122]]){const a=A[id],w=h*a.width/a.height;b.drawImage(a,x-w/2,818-h-(x-300)*.045,w,h)}
+  b.drawImage(A['jack-classic'],232,742,112,106);
+  b.drawImage(A['cobweb'],792,628,90,90);
+  // A-frame menu board (blank chalkboard, invitation copy only)
+  fillPoly(b,[[880,1050],[912,860],[922,860],[900,1050]],'#3A2380',C.ink,4);fillPoly(b,[[1010,1050],[978,860],[988,860],[1030,1050]],'#3A2380',C.ink,4);
+  fillPoly(b,[[878,884],[1018,878],[1024,1012],[872,1018]],'#231A22',C.burg,9);fillPoly(b,[[878,884],[1018,878],[1024,1012],[872,1018]],null,C.ink,4);
+  b.save();b.translate(949,948);b.rotate(-.04);b.font="27px PM";b.textAlign='center';b.fillStyle=C.cream;b.fillText('PULL UP',0,-24);b.fillText('TO THE',0,8);b.fillStyle=C.orange;b.fillText('BOOTH.',0,42);b.restore();
+
+  // merchant sign text + real wordmark
+  ctx.save();ctx.translate(546,0);ctx.transform(1,-0.028,0,1,0,0);ctx.font="20px BG";ctx.letterSpacing="6px";ctx.textAlign='center';ctx.fillStyle=C.orange;ctx.fillText('A HALLOWEEN POP-UP BY',0,534);
+  ctx.drawImage(word,-175,544,350,350*word.height/word.width);ctx.restore();
+  return o;
+}
+
+(async()=>{
+  for(const f of ["40px CR","40px BG","40px AB","20px PM"])await document.fonts.load(f);
+  const A={};for(const id of Object.keys(ASSETS))A[id]=await svgImg(ASSETS[id].svg);
+  // the event's host: pumpkin-head in a navy suit
+  A.host=await svgImg(ASSETS['pumpkin-head'].svg.replaceAll('#390713','#17166F'));
+  const logo=await load('/home/user/Halloween-terownie/public/brand/terownie-logo-navy.png');
+  const faceC=await load('/home/user/Halloween-terownie/public/brand/terownie-face-cream.png');
+  const wordC=await load('/home/user/Halloween-terownie/public/brand/terownie-wordmark-cream.png');
+  const M=34,PW=W-2*M;
+
+  // ── 1 aged paper ─────────────────────────────
+  const pp=layer('01-paper',1);
+  rect(pp,0,0,W,H,C.paper);
+  const r=rng(3);for(let i=0;i<90;i++){const x=r()*W,y=r()*H,rad=30+r()*160;const g=pp.createRadialGradient(x,y,0,x,y,rad);g.addColorStop(0,`rgba(150,105,50,${.05+r()*.08})`);g.addColorStop(1,'rgba(150,105,50,0)');pp.fillStyle=g;pp.fillRect(x-rad,y-rad,2*rad,2*rad)}
+  let g=pp.createRadialGradient(W/2,H/2,500,W/2,H/2,900);g.addColorStop(0,'rgba(120,70,20,0)');g.addColorStop(1,'rgba(120,70,20,.35)');pp.fillStyle=g;pp.fillRect(0,0,W,H);
+
+  // ── 2 header bar + strip ─────────────────────
+  const hd=layer('02-header',2);
+  rect(hd,M,M,PW,184,C.ink);dots(hd,M,M,PW,184,'rgba(255,255,255,.06)',7,()=>.6);
+  rect(hd,M,M+194,PW,54,C.red);dots(hd,M,M+194,PW,54,'rgba(16,9,15,.25)',6,()=>.5);frame(hd,M,M+194,PW,54,7);
+
+  // ── 3 main panel: Terownie booth at the pool party ──
+  const sc=layer('03-main-panel-scene',3);
+  const X0=M,Y0=294,PW2=PW,PH=590;
+  sc.save();sc.beginPath();sc.rect(X0,Y0,PW2,PH);sc.clip();
+  g=sc.createLinearGradient(0,Y0,0,Y0+PH);g.addColorStop(0,'#E8392B');g.addColorStop(.55,'#F57A2A');g.addColorStop(.75,'#F9A43C');sc.fillStyle=g;sc.fillRect(X0,Y0,PW2,PH);
+  dots(sc,X0,Y0,PW2,PH*.75,'rgba(180,20,40,.45)',8,(x,y)=>1-(y-Y0)/(PH*.8));
+  // moon + bats
+  sc.drawImage(A['moon-full'],850,410,150,150);
+  for(const [id,x,y,s] of [['bat-up',300,560,80],['bat-glide',760,330,70],['bat-down',990,600,56],['bat-up',220,700,50]])sc.drawImage(A[id],x-s/2,y,s,s*.75);
+  // villa silhouette with lit windows
+  sc.fillStyle='#24113F';
+  for(const [x,y,w,h] of [[60,600,300,130],[300,560,260,170],[520,610,240,120],[720,590,180,140]])sc.fillRect(x,y,w,h);
+  sc.fillStyle=C.ink;for(const [x,y,w] of [[50,588,320],[290,548,280],[510,598,260],[710,578,200]])sc.fillRect(x,y,w,14);
+  sc.fillStyle='#FFC24A';const rw=rng(8);for(let i=0;i<22;i++){const x=70+rw()*820,y=575+rw()*120;if(rw()<.75)sc.fillRect(x,y,26,18)}
+  palm(sc,96,740,300,30);palm(sc,1010,760,360,-40);palm(sc,880,720,250,25);palm(sc,250,720,200,-20);
+  // deck
+  sc.fillStyle=C.deck;sc.fillRect(X0,720,PW2,170);
+  sc.strokeStyle='rgba(16,9,15,.45)';sc.lineWidth=3;for(let y=735;y<890;y+=22){sc.beginPath();sc.moveTo(X0,y);sc.lineTo(X0+PW2,y);sc.stroke()}
+  dots(sc,X0,720,PW2,170,'rgba(242,167,210,.35)',7,()=>.6);
+  // HERO: the Terownie booth, mascot peeking over the sign
+  const booth=drawBooth(A,faceC,wordC);
+  sc.drawImage(booth,200,252,860,810,232,296,860*.73,810*.73);
+  // event host ordering at the counter + party ghost with a cup
+  sc.drawImage(A.host,52,512,236,372);
+  sc.drawImage(A['iced-latte'],69,552,62,102);
+  sc.drawImage(A['party-ghost'],868,640,160,156);
+  sc.drawImage(A['iced-caramel'],970,700,48,80);
+  // speech bubble from the host
+  sc.drawImage(A['speech-round'],44,312,320,224);
+  sc.restore();
+  frame(sc,X0,Y0,PW2,PH,10);
+  // speed lines in corners, comic style
+  sc.strokeStyle='rgba(16,9,15,.6)';sc.lineWidth=2;for(let i=0;i<14;i++){sc.beginPath();sc.moveTo(X0+PW2-4,Y0+4+i*9);sc.lineTo(X0+PW2-80-i*6,Y0+4);sc.stroke()}
+
+  // ── 4 bottom panels ──────────────────────────
+  const bp=layer('04-bottom-panels',4);
+  const BY=896,BH=H-M-BY;
+  const p1=[M,BY,330,BH],p2=[M+342,BY,300,BH],p3=[M+654,BY,PW-654,BH];
+  rect(bp,...p1,C.navy);dots(bp,...p1,'rgba(176,92,255,.35)',7,()=>.7);frame(bp,...p1);
+  rect(bp,...p2,C.pink);dots(bp,...p2,'rgba(255,255,255,.35)',7,()=>.6);frame(bp,...p2);
+  rect(bp,...p3,C.olive);dots(bp,...p3,'rgba(16,9,15,.28)',7,()=>.6);
+  bp.save();bp.beginPath();bp.rect(...p3);bp.clip();bp.drawImage(A['jack-scary'],W-M-215,H-M-190,240,228);bp.restore();frame(bp,...p3);
+  for(const [id,x,a] of [['iced-caramel',M+92,-.22],['iced-black',M+238,.22]]){bp.save();bp.translate(x,BY+330);bp.rotate(a);bp.drawImage(A[id],-55,-90,110,182);bp.restore()}
+  bp.drawImage(logo,p2[0]+30,BY+150,240,240*logo.height/logo.width);
+  // burst
+  bp.save();bp.translate(110,104);bp.rotate(-.12);bp.drawImage(A['burst-24'],-120,-120,240,240);bp.restore();
+
+  // ── 5 comic print finish ─────────────────────
+  const fx=layer('05-print-grain',5,'multiply');const id=fx.createImageData(W,H),rg=rng(9);
+  for(let i=0;i<W*H;i++){const v=255-rg()*rg()*90;id.data[i*4]=v;id.data[i*4+1]=v*.97;id.data[i*4+2]=v*.9;id.data[i*4+3]=255}fx.putImageData(id,0,0);
+
+  // ── 6 typography ─────────────────────────────
+  const drip=(c,sh)=>`color:${c};text-shadow:4px 4px 0 ${sh},-2px -2px 0 ${C.ink},2px -2px 0 ${C.ink},-2px 2px 0 ${C.ink}`;
+  div('06-burst-text',8,`left:42px;top:66px;transform:rotate(-12deg);text-align:center;width:140px`,`<div class="bg" style="font-size:44px;color:${C.ink};line-height:.9">PULL<br>UP!</div>`);
+  div('06-presenter',8,`left:230px;top:44px;width:816px;text-align:center`,`<div class="cr" style="font-size:44px"><span style="${drip(C.red,C.ink)}">PUMP.BOYZ</span> <span style="color:#fff">×</span> <span style="${drip(C.violet,C.ink)}">EVPHORIA</span></div>`);
+  div('06-house-party',8,`left:230px;top:92px;width:816px;text-align:center`,`<div class="cr" style="font-size:128px;color:${C.orange};text-shadow:6px 6px 0 ${C.red}">HOUSE PARTY</div>`);
+  div('06-strip',8,`left:${M}px;top:${M+194}px;width:${PW}px;height:54px;display:flex;align-items:center;justify-content:center`,`<div class="bg" style="font-size:36px;color:${C.paper};letter-spacing:.12em;text-shadow:3px 3px 0 ${C.ink}">HALLOWEEN SPECIAL ✦ A POP-UP BY TEROWNIE</div>`);
+  div('06-bubble-text',9,`left:60px;top:352px;width:290px;text-align:center;transform:rotate(-3deg)`,`<div class="bg" style="font-size:36px;color:${C.ink};line-height:1">WAKE THE<br>DEAD!!</div>`);
+  div('06-caption-box',9,`left:${M+PW-330}px;top:302px;width:310px;background:${C.yellow};border:5px solid ${C.ink};padding:8px 12px;box-shadow:6px 6px 0 ${C.ink};transform:rotate(1.5deg)`,`<div class="bg" style="font-size:30px;color:${C.ink};line-height:1.05;white-space:normal">GRAB YOUR SIP.<br>JOIN THE CHAOS.</div>`);
+  // panel 1
+  div('06-panel-wake',9,`left:${M}px;top:${BY+26}px;width:330px;text-align:center`,`<div class="cr" style="font-size:88px;${drip(C.orange,C.red)};line-height:.92">WAKE<br>THE DEAD</div><div class="bg" style="font-size:44px;color:${C.yellow};margin-top:22px;text-shadow:3px 3px 0 ${C.ink}">SIP AND KILL</div>`);
+  // panel 2
+  div('06-panel-popup',9,`left:${M+342}px;top:${BY+30}px;width:300px;text-align:center`,`<div class="bg" style="font-size:38px;color:${C.ink};line-height:1">A HALLOWEEN<br>POP-UP BY</div>`);
+  div('06-panel-handle',9,`left:${M+342}px;top:${BY+BH-62}px;width:300px;text-align:center`,`<div class="bg" style="font-size:30px;color:${C.navy};letter-spacing:.08em">@TEROWNIE_CAFE</div>`);
+  // panel 3
+  div('06-panel-details',9,`left:${M+672}px;top:${BY+20}px;width:330px`,`<div class="cr" style="font-size:52px;${drip(C.red,C.ink)}">WHEN &amp; WHERE?</div>
+   <div class="bg" style="font-size:31px;color:${C.yellow};margin-top:12px;text-shadow:2px 2px 0 ${C.ink};line-height:1.18">FRIDAY, OCTOBER 30, 2026<br>DOORS OPEN AT 3 PM<br>TWIN-PEAKS MOUNTAIN<br>BRGY. DAPDAP,<br>TAYABAS CITY</div>`);
+  document.title='ready';
+})();
+</script></body></html>
