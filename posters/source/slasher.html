@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:'PF';src:url('../../node_modules/@fontsource/playfair-display/files/playfair-display-latin-400-normal.woff2')}
+@font-face{font-family:'MS';font-weight:400;src:url('../../node_modules/@fontsource/montserrat/files/montserrat-latin-400-normal.woff2')}
+@font-face{font-family:'MS';font-weight:600;src:url('../../node_modules/@fontsource/montserrat/files/montserrat-latin-600-normal.woff2')}
+html,body{margin:0;background:transparent}
+#p{position:relative;overflow:hidden;width:1080px;height:1350px;background:#120709}
+#p>*{position:absolute;left:0;top:0}
+.ms{font-family:MS;color:#F4E6D6;white-space:nowrap}
+.pf{font-family:PF;white-space:nowrap;line-height:.8}
+</style></head>
+<body><div id="p"></div>
+<script src="lib.js"></script>
+<script>
+// Slasher poster · "Fright Night" layout · real costumed people (CC0 / CC BY photos) · Terownie pop-up
+const RED='#E8343C', CREAM='#F4E6D6';
+/** Draw an image with feathered (soft) edges. */
+function feathered(ctx,img,x,y,w,h,{feather=120,alpha=1,filter='none',sx=0,sy=0,sw=img.width,sh=img.height}={}){
+  const c=canvas(w,h),cc=c.getContext('2d');cc.filter=filter;cc.drawImage(img,sx,sy,sw,sh,0,0,w,h);cc.filter='none';
+  cc.globalCompositeOperation='destination-in';
+  const m=canvas(w,h),mc=m.getContext('2d');
+  for(const [x0,y0,x1,y1] of [[0,0,feather,0],[w,0,w-feather,0],[0,0,0,feather],[0,h,0,h-feather]]){
+    const g=mc.createLinearGradient(x0,y0,x1,y1);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');mc.fillStyle=g;mc.fillRect(0,0,w,h)}
+  const inv=canvas(w,h),ic=inv.getContext('2d');ic.fillStyle='#000';ic.fillRect(0,0,w,h);ic.globalCompositeOperation='destination-out';ic.drawImage(m,0,0);
+  cc.drawImage(inv,0,0);
+  ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(c,x,y);ctx.restore();
+}
+(async()=>{
+  await fonts(["40px PF","400 20px MS","600 20px MS"]);
+  const ph=n=>load(ROOT+'public/photos/'+n+'.jpg');
+  const [slasher,c1,c2,c3,c4]=await Promise.all(['slasher-cc0','crowd-clown','crowd-zombie-girl','crowd-zombie-nurse','crowd-street'].map(ph));
+  const cup=await load(ROOT+'public/drinks/strawberry-matcha.png');
+  const logo=await load(ROOT+'public/brand/terownie-logo-cream.png');
+
+  // 1 background: real costumed crowd, red duotone, LOW opacity, smoky
+  const bg=layer('01-crowd-photos-low-opacity',1);
+  bg.fillStyle='#120709';bg.fillRect(0,0,W,H);
+  const tmp=canvas(W,H),t=tmp.getContext('2d');
+  duotone(t,c1,-160,360,760,507,'#120709','#F0505A',{contrast:1.5});
+  duotone(t,c3,560,330,740,494,'#120709','#F0505A',{contrast:1.5});
+  duotone(t,c2,-120,780,800,534,'#120709','#F0505A',{contrast:1.5});
+  duotone(t,c4,520,820,820,547,'#120709','#F0505A',{contrast:1.5});
+  bg.globalAlpha=.58;bg.drawImage(tmp,0,0);bg.globalAlpha=1;
+  bg.globalCompositeOperation='screen';bg.globalAlpha=.25;bg.drawImage(noiseCanvas(W,H,170,4),0,0);bg.globalAlpha=1;bg.globalCompositeOperation='source-over';
+  let g=bg.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(18,7,9,.96)');g.addColorStop(.3,'rgba(18,7,9,.5)');g.addColorStop(.75,'rgba(18,7,9,.25)');g.addColorStop(1,'rgba(18,7,9,.9)');bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  g=bg.createRadialGradient(880,240,10,880,240,420);g.addColorStop(0,'rgba(232,52,60,.4)');g.addColorStop(1,'rgba(232,52,60,0)');bg.fillStyle=g;bg.fillRect(0,0,W,H);
+
+  // 2 hero: the slasher (real costume photo), dark + desaturated with a red cast, soft edges
+  const hero=layer('02-slasher-photo',2);
+  feathered(hero,slasher,330,400,660,990,{feather:150,filter:'grayscale(.75) contrast(1.25) brightness(.9) sepia(.35) hue-rotate(-30deg) saturate(1.6)',sx:40,sy:0,sw:813,sh:1220});
+  g=hero.createLinearGradient(0,1150,0,H);g.addColorStop(0,'rgba(18,7,9,0)');g.addColorStop(1,'rgba(18,7,9,.92)');hero.globalCompositeOperation='source-atop';hero.fillStyle=g;hero.fillRect(0,0,W,H);hero.globalCompositeOperation='source-over';
+
+  // 3 the "red balloon": Terownie's strawberry matcha glowing
+  const cp=layer('03-hero-drink',3);
+  cp.save();cp.shadowColor='rgba(232,52,60,.75)';cp.shadowBlur=70;cp.translate(250,690);cp.rotate(-.08);cp.drawImage(cup,-130,-175,260,350);cp.restore();
+
+  // 4 print finish: the inspo's screen-door dots + grain
+  dotScreen(4,'rgba(10,3,5,.55)',7,1.75);
+  retroFinish(5,.75);
+
+  // 5 typography
+  div('06-presenters',8,`top:56px;width:${W}px;text-align:center`,`<div class="ms" style="font-size:22px;letter-spacing:.62em;color:${RED};padding-left:.62em">PUMP.BOYZ &nbsp;×&nbsp; EVPHORIA</div>`);
+  div('06-title',8,`top:96px;left:-400px;width:${W+800}px;text-align:center`,`<div class="pf" style="font-size:250px;color:${CREAM};display:inline-block;transform:scaleX(.62);letter-spacing:-4px">SIP AND KILL</div>`);
+  div('06-subtitle',8,`top:318px;width:${W}px;text-align:center`,`<div class="ms" style="font-size:30px;letter-spacing:.55em;color:${RED};padding-left:.55em">A HALLOWEEN POP-UP</div>`);
+  div('07-date',8,`left:640px;top:410px;width:380px;text-align:right`,`<div class="ms" style="font-size:26px;letter-spacing:.06em">FRIDAY, OCTOBER 30</div><div class="ms" style="font-size:36px;letter-spacing:.05em;margin-top:4px">DOORS OPEN 3 PM</div>`);
+  div('07-big',8,`left:620px;top:520px;width:400px;text-align:right`,`<div class="pf" style="font-size:190px;color:${RED};display:inline-block;transform:scaleX(.62);transform-origin:right">10.30</div><div class="ms" style="font-size:17px;font-weight:600;letter-spacing:.06em;margin-top:6px">HOUSE PARTY —<br>HALLOWEEN SPECIAL</div>`);
+  div('08-booth',8,`left:60px;top:1000px`,`<div class="pf" style="font-size:92px;color:${RED};display:inline-block;transform:scaleX(.62);transform-origin:left">AT THE BOOTH</div><div class="ms" style="font-size:34px;letter-spacing:.04em;margin-top:6px">GRAB YOUR SIP</div><div class="ms" style="font-size:19px;letter-spacing:.08em;margin-top:2px">@TEROWNIE_CAFE</div>`);
+  div('08-venue',8,`left:640px;top:1060px;width:380px;text-align:right`,`<div class="ms" style="font-size:30px;letter-spacing:.03em">TWIN-PEAKS MOUNTAIN</div><div class="ms" style="font-size:19px;letter-spacing:.06em;margin-top:2px">BRGY. DAPDAP<br>TAYABAS CITY</div>`);
+  div('09-logo-row',9,`top:1218px;width:${W}px;display:flex;justify-content:center;align-items:center;gap:44px`,
+    `<img src="${logo.src}" style="height:74px"><div style="width:2px;height:58px;background:${CREAM}"></div>
+     <div class="ms" style="font-weight:600;font-size:24px;letter-spacing:.12em">PUMP.BOYZ</div><div style="width:2px;height:58px;background:${CREAM}"></div>
+     <div class="ms" style="font-weight:600;font-size:24px;letter-spacing:.12em">EVPHORIA</div>`);
+  document.title='ready';
+})();
+</script></body></html>
