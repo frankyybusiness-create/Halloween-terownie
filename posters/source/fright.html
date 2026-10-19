@@ -1,0 +1,64 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:'PF';src:url('../../node_modules/@fontsource/playfair-display/files/playfair-display-latin-400-normal.woff2')}
+@font-face{font-family:'MS';font-weight:400;src:url('../../node_modules/@fontsource/montserrat/files/montserrat-latin-400-normal.woff2')}
+@font-face{font-family:'MS';font-weight:600;src:url('../../node_modules/@fontsource/montserrat/files/montserrat-latin-600-normal.woff2')}
+html,body{margin:0;background:transparent}
+#p{position:relative;overflow:hidden;width:1080px;height:1350px;background:#120709}
+#p>*{position:absolute;left:0;top:0}
+.ms{font-family:MS;color:#F4E6D6;white-space:nowrap}
+.pf{font-family:PF;white-space:nowrap;line-height:.8}
+</style></head>
+<body><div id="p"></div>
+<script src="lib.js"></script>
+<script>
+// "Fright Night" layout · PUMP.BOYZ × EVPHORIA house-party imagery · Terownie pop-up
+const RED='#E8343C', CREAM='#F4E6D6';
+(async()=>{
+  await fonts(["40px PF","400 20px MS","600 20px MS"]);
+  const crowd=await load(ROOT+'public/event/costume-crowd.png');
+  const house=await load(ROOT+'public/event/party-house.png');
+  const host=await load(ROOT+'public/event/pumpkin-host-cut.png');
+  const cup=await load(ROOT+'public/drinks/strawberry-matcha.png');
+  const logo=await load(ROOT+'public/brand/terownie-logo-cream.png');
+
+  // 1 background: the party crowd + house, red/black duotone, smoky
+  const bg=layer('01-party-background',1);
+  bg.fillStyle='#120709';bg.fillRect(0,0,W,H);
+  duotone(bg,house,-120,330,1320,910,'#120709','#7A1A20',{contrast:1.4,alpha:.55});
+  duotone(bg,crowd,-160,700,1400,964,'#120709','#E0444A',{contrast:1.7,alpha:.95});
+  let g=bg.createRadialGradient(540,1100,60,540,1100,700);g.addColorStop(0,'rgba(18,7,9,.2)');g.addColorStop(1,'rgba(18,7,9,0)');
+  const smoke=noiseCanvas(W,H,180,4);bg.globalCompositeOperation='screen';bg.globalAlpha=.35;bg.drawImage(smoke,0,0);bg.globalAlpha=1;bg.globalCompositeOperation='source-over';
+  g=bg.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(18,7,9,.95)');g.addColorStop(.32,'rgba(18,7,9,.55)');g.addColorStop(.7,'rgba(18,7,9,.15)');g.addColorStop(1,'rgba(18,7,9,.92)');bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  // red glow behind the title band
+  g=bg.createRadialGradient(900,230,10,900,230,420);g.addColorStop(0,'rgba(232,52,60,.45)');g.addColorStop(1,'rgba(232,52,60,0)');bg.fillStyle=g;bg.fillRect(0,0,W,H);
+
+  // 2 the event's pumpkin-head host, dark and moody
+  const fg=layer('02-pumpkin-host',2);
+  fg.save();fg.filter='brightness(.82) contrast(1.15) saturate(.9)';fg.drawImage(host,330,560,620,714);fg.restore();
+  g=fg.createLinearGradient(0,1100,0,1350);g.addColorStop(0,'rgba(18,7,9,0)');g.addColorStop(1,'rgba(18,7,9,.95)');fg.globalCompositeOperation='source-atop';fg.fillStyle=g;fg.fillRect(0,0,W,H);fg.globalCompositeOperation='source-over';
+
+  // 3 the hero: real Terownie strawberry matcha held up like the red balloon
+  const cp=layer('03-hero-drink',3);
+  cp.save();cp.shadowColor='rgba(232,52,60,.65)';cp.shadowBlur=60;cp.translate(300,720);cp.rotate(-.08);cp.drawImage(cup,-150,-200,300,404);cp.restore();
+  // 4 print finish: screen-door dots + event's retro canvas texture
+  dotScreen(4,'rgba(10,3,5,.5)',7,1.7);
+  retroFinish(5,.8);
+
+  // 5 typography
+  div('06-presenters',8,`top:56px;width:${W}px;text-align:center`,`<div class="ms" style="font-size:22px;letter-spacing:.62em;color:${RED};padding-left:.62em">PUMP.BOYZ &nbsp;×&nbsp; EVPHORIA</div>`);
+  div('06-title',8,`top:96px;left:-400px;width:${W+800}px;text-align:center`,`<div class="pf" style="font-size:250px;color:${CREAM};display:inline-block;transform:scaleX(.62);letter-spacing:-4px">SIP AND KILL</div>`);
+  div('06-subtitle',8,`top:318px;width:${W}px;text-align:center`,`<div class="ms" style="font-size:30px;letter-spacing:.55em;color:${RED};padding-left:.55em">A HALLOWEEN POP-UP</div>`);
+  div('07-date',8,`left:640px;top:420px;width:380px;text-align:right`,`<div class="ms" style="font-size:26px;letter-spacing:.06em">FRIDAY, OCTOBER 30</div><div class="ms" style="font-size:36px;letter-spacing:.05em;margin-top:4px">DOORS OPEN 3 PM</div>`);
+  div('07-big-date',8,`left:620px;top:520px;width:400px;text-align:right`,`<div class="pf" style="font-size:190px;color:${RED};display:inline-block;transform:scaleX(.62);transform-origin:right">10.30</div><div class="ms" style="font-size:17px;font-weight:600;letter-spacing:.06em;margin-top:6px">HOUSE PARTY —<br>HALLOWEEN SPECIAL</div>`);
+  div('08-booth',8,`left:60px;top:1010px`,`<div class="pf" style="font-size:92px;color:${RED};display:inline-block;transform:scaleX(.62);transform-origin:left">AT THE BOOTH</div><div class="ms" style="font-size:34px;letter-spacing:.04em;margin-top:6px">GRAB YOUR SIP</div><div class="ms" style="font-size:19px;letter-spacing:.08em;margin-top:2px">@TEROWNIE_CAFE</div>`);
+  div('08-venue',8,`left:640px;top:1070px;width:380px;text-align:right`,`<div class="ms" style="font-size:30px;letter-spacing:.03em">TWIN-PEAKS MOUNTAIN</div><div class="ms" style="font-size:19px;letter-spacing:.06em;margin-top:2px">BRGY. DAPDAP<br>TAYABAS CITY</div>`);
+  // logo row, like the inspo's three marks
+  div('09-logo-row',9,`top:1218px;width:${W}px;display:flex;justify-content:center;align-items:center;gap:44px`,
+    `<img src="${logo.src}" style="height:74px"><div style="width:2px;height:58px;background:${CREAM}"></div>
+     <div class="ms" style="font-weight:600;font-size:24px;letter-spacing:.12em">PUMP.BOYZ</div><div style="width:2px;height:58px;background:${CREAM}"></div>
+     <div class="ms" style="font-weight:600;font-size:24px;letter-spacing:.12em">EVPHORIA</div>`);
+  document.title='ready';
+})();
+</script></body></html>

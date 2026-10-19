@@ -1,0 +1,64 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:'BU';src:url('../../node_modules/@fontsource/bungee/files/bungee-latin-400-normal.woff2')}
+@font-face{font-family:'SY';font-weight:700;src:url('../../node_modules/@fontsource/syncopate/files/syncopate-latin-700-normal.woff2')}
+@font-face{font-family:'SG';font-weight:500;src:url('../../node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-500-normal.woff2')}
+html,body{margin:0;background:transparent}
+#p{position:relative;overflow:hidden;width:1080px;height:1350px}
+#p>*{position:absolute;left:0;top:0}
+.w{font-family:SG;font-weight:500;color:#fff;text-align:center;white-space:nowrap}
+</style></head>
+<body><div id="p"></div>
+<script src="lib.js"></script>
+<script>
+// "Disco Devil" layout · the event's own art (pumpkin host, party house, jack) halftoned · Terownie pop-up
+const OR='#FF8A00', DRED='#A80E1C';
+(async()=>{
+  await fonts(["40px BU","700 20px SY","500 20px SG"]);
+  const host=await load(ROOT+'public/event/pumpkin-host-cut.png');
+  const house=await load(ROOT+'public/event/party-house.png');
+  const jack=await load(ROOT+'public/event/jack-cut.png');
+  const cups=await Promise.all(['strawberry-matcha','taro-cloud','dirty-matcha'].map(n=>load(ROOT+'public/drinks/'+n+'.png')));
+  const logo=await load(ROOT+'public/brand/terownie-logo-white.png');
+
+  const bg=layer('01-background',1);
+  let g=bg.createLinearGradient(0,0,0,H);g.addColorStop(0,'#3B1590');g.addColorStop(.38,'#2B0E66');g.addColorStop(.66,'#1A0A2E');g.addColorStop(1,'#171217');
+  bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  g=bg.createRadialGradient(860,160,20,860,160,560);g.addColorStop(0,'rgba(120,70,255,.55)');g.addColorStop(1,'rgba(120,70,255,0)');bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  bg.fillStyle='rgba(95,45,210,.5)';bg.beginPath();for(let y=0;y<H*.7;y+=6)for(let x=(y/6%2)*3;x<W;x+=6){const r=1.6*(1-y/(H*.7))+.25;bg.moveTo(x+r,y);bg.arc(x,y,r,0,7)}bg.fill();
+
+  // the event's party house, orange halftone, tilted like the inspo's building
+  const hs=layer('02-party-house',2);
+  halftone(hs,house,150,400,1060,730,{color:OR,plate:'#2A1206',spacing:6.5,gain:1.35,rot:-.16,light:.8,lx:.4,ly:.2,seed:3});
+
+  // the event's pumpkin-head host as the giant red "devil", left
+  const ch=layer('03-pumpkin-host',3);
+  halftone(ch,host,-170,300,560,645,{color:'#FF2A35',plate:'#4A0610',spacing:6.5,gain:1.25,rot:.1,light:.9,lx:.6,ly:.15,seed:5});
+
+  // red ghosts of the crowd + big jack, bottom
+  const bt=layer('04-jack',4);
+  halftone(bt,jack,700,930,480,520,{color:'#E3202E',plate:'#3E0610',spacing:7,gain:1.2,rot:-.1,light:.7,seed:9});
+  g=bt.createLinearGradient(0,1140,0,H);g.addColorStop(0,'rgba(23,18,23,0)');g.addColorStop(.5,'rgba(23,18,23,.8)');g.addColorStop(1,'rgba(23,18,23,.96)');bt.fillStyle=g;bt.fillRect(0,1140,W,210);
+
+  // the real drinks, red halftone, raised like a toast (bottom left)
+  const dk=layer('05-drinks',5);
+  [[60,1000,-.18],[190,960,-.04],[320,1010,.12]].forEach(([x,y,r],i)=>halftone(dk,cups[i],x,y,150,205,{color:'#FF4A55',plate:'#4A0610',spacing:5,gain:1.1,rot:r,light:.5,seed:20+i}));
+
+  retroFinish(10,.55);
+
+  const hl=`font-family:BU;color:${OR};line-height:.86;white-space:nowrap;letter-spacing:-2px`;
+  div('07-headline-SIP-AND',12,`left:44px;top:52px;font-size:176px;${hl}`,'SIP AND');
+  div('07-headline-KILL',12,`left:430px;top:214px;font-size:236px;${hl}`,'KILL');
+  div('08-popup-by',12,`top:478px;width:${W}px`,`<div class="w" style="font-size:36px;letter-spacing:.09em">A HALLOWEEN POP UP BY</div>`);
+  const lw=380,lh=lw*logo.height/logo.width;
+  div('08-logo',12,`left:${(W-lw)/2}px;top:532px;width:${lw}px`,`<img src="${logo.src}" style="width:100%;filter:drop-shadow(0 4px 14px rgba(16,9,15,.7))">`);
+  const py=532+lh+18;
+  div('08-tagline',12,`top:${py}px;width:${W}px`,`<div class="w" style="font-family:SY;font-weight:700;font-size:40px;color:#FFF4DA;text-shadow:3px 3px 0 #A80E1C">WAKE THE DEAD</div>`);
+  strip('09-strip-party',12,(W-540)/2,py+72,540,78,11,DRED,`<div class="w" style="font-size:27px;letter-spacing:.08em;line-height:1.05">HOUSE PARTY — HALLOWEEN<br>SPECIAL BY</div>`);
+  div('09-hosts',12,`top:${py+170}px;width:${W}px`,`<div class="w" style="font-family:SY;font-weight:700;font-size:40px">PUMP.BOYZ <span style="font-family:SG;font-size:52px">×</span> EVPHORIA</div>`);
+  strip('10-strip-date',12,(W-560)/2,py+250,560,82,23,DRED,`<div class="w" style="font-size:44px;letter-spacing:.05em">FRI · OCT 30 — 3 PM</div>`);
+  div('11-venue',12,`top:${py+356}px;width:${W}px`,`<div class="w" style="font-size:20px;letter-spacing:.2em;text-shadow:0 2px 6px #000">TWIN-PEAKS MOUNTAIN · BRGY. DAPDAP, TAYABAS CITY</div><div class="w" style="font-size:20px;letter-spacing:.32em;margin-top:8px;text-shadow:0 2px 6px #000,2px 2px 0 ${DRED}">@TEROWNIE_CAFE</div>`);
+  document.title='ready';
+})();
+</script></body></html>
