@@ -19,7 +19,7 @@ const RED='#E8343C', CREAM='#F4E6D6';
   await fonts(["40px PF","400 20px MS","600 20px MS"]);
   const crowd=await load(ROOT+'public/event/costume-crowd.png');
   const house=await load(ROOT+'public/event/party-house.png');
-  const host=await load(ROOT+'public/event/pumpkin-host-cut.png');
+  const host=await load(ROOT+'public/brand/mascot-devil.png');
   const cup=await load(ROOT+'public/drinks/strawberry-matcha.png');
   const logo=await load(ROOT+'public/brand/terownie-logo-cream.png');
 
@@ -36,12 +36,12 @@ const RED='#E8343C', CREAM='#F4E6D6';
 
   // 2 the event's pumpkin-head host, dark and moody
   const fg=layer('02-pumpkin-host',2);
-  fg.save();fg.filter='brightness(.82) contrast(1.15) saturate(.9)';fg.drawImage(host,330,560,620,714);fg.restore();
+  fg.save();fg.shadowColor='rgba(232,52,60,.55)';fg.shadowBlur=50;fg.drawImage(host,300,600,420,574);fg.restore();
   g=fg.createLinearGradient(0,1100,0,1350);g.addColorStop(0,'rgba(18,7,9,0)');g.addColorStop(1,'rgba(18,7,9,.95)');fg.globalCompositeOperation='source-atop';fg.fillStyle=g;fg.fillRect(0,0,W,H);fg.globalCompositeOperation='source-over';
 
   // 3 the hero: real Terownie strawberry matcha held up like the red balloon
   const cp=layer('03-hero-drink',3);
-  cp.save();cp.shadowColor='rgba(232,52,60,.65)';cp.shadowBlur=60;cp.translate(300,720);cp.rotate(-.08);cp.drawImage(cup,-150,-200,300,404);cp.restore();
+  cp.save();cp.shadowColor='rgba(232,52,60,.65)';cp.shadowBlur=60;cp.translate(190,760);cp.rotate(-.08);cp.drawImage(cup,-125,-168,250,337);cp.restore();
   // 4 print finish: screen-door dots + event's retro canvas texture
   dotScreen(4,'rgba(10,3,5,.5)',7,1.7);
   retroFinish(5,.8);

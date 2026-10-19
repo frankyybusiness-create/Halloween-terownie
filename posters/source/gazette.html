@@ -14,7 +14,7 @@ const PAPER='#2457E6', INK='#0B0B14';
 const M=30;
 (async()=>{
   await fonts(["40px AN"]);
-  const host=await load(ROOT+'public/event/pumpkin-host-cut.png');
+  const host=await load(ROOT+'public/brand/mascot-devil.png');
   const crowd=await load(ROOT+'public/event/costume-crowd.png');
   const house=await load(ROOT+'public/event/party-house.png');
   const cup=await load(ROOT+'public/drinks/dirty-matcha.png');
@@ -29,7 +29,7 @@ const M=30;
   // header rule + stars
   hr(M+14,404,W-2*M-28,8);
   // hero: pumpkin host in the headline box (right), halftoned dark-on-blue
-  halftone(ink,host,712,60,300,345,{color:INK,spacing:5.5,gain:.95,invert:true,light:.2,lx:.4,ly:.3,seed:4});
+  halftone(ink,host,742,46,252,345,{color:INK,spacing:5.5,gain:.95,invert:true,light:.2,lx:.4,ly:.3,seed:4});
   // left photo panel: the event's costume crowd
   const PX=M+14,PY=418,PW=430,PH=400;
   ink.save();ink.beginPath();ink.rect(PX,PY,PW,PH);ink.clip();
