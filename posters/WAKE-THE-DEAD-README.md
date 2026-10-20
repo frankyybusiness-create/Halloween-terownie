@@ -44,3 +44,13 @@ Files: `wake-the-dead-b-3240x4050.jpg`, `wake-the-dead-b-print.pdf`, `wake-the-d
 - **Facts:** the date and venue are on torn strips, the ₱400 early price is a rubber-stamp disc, and the DJs, inside list and house rules are in a movie-poster credits block at the bottom.
 - **Logo:** the empty black area at the bottom right (x 830, y 1120, 202 × 150 in 1080 × 1350 units) is for your logo, above the "HALLOWEEN POP-UP · SIP AND KILL" caption. There is still no logo on the poster.
 - **Photo credit:** the same as version A. Add "Photos: Grmisiti (CC BY 2.0)" to the caption.
+
+## Terownie page poster (booth promo)
+Files: `terownie-popup-wake-the-dead-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-popup.html`.
+This poster is for the Terownie page and promotes the SIP AND KILL booth at the PUMP.BOYZ × EVPHORIA house party. It is styled after the event's own flyers: aged comic paper, a black header bar, a drippy horror title, a yellow "DON'T MISS OUT" burst, a panel grid in the flyers' colours, and halftone with grain.
+The panels are:
+- the booth render printed as a comic frame
+- the Terownie logo (the supplied file, recoloured to cream) with SIP AND KILL
+- the four real menu drinks
+- the date (Friday the 30th of October, doors open at 3 PM)
+- the venue
