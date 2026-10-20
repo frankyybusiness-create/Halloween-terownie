@@ -94,4 +94,4 @@ Each element is borrowed from one of the reference posters:
 - **Red Halloween Party flyer:** corner stamps with the event's real house rules, "COSTUME IS A MUST" and "STRICTLY NO MINORS".
 - **"SIP AND KILL":** now set in Creepster, a drippy horror font, in cream with a dark blood shadow.
 - **Background crowd:** zoomed out so the characters are recognisable and peek around the TV, with a crisp red-and-black duotone and halftone dots instead of the blur, fading softly at the top and bottom.
-- **Ghostface:** a real photo of the Ghostface mask and hood (Urko Dorronsoro, CC BY-SA 2.0, cut out), looming large above the centre behind the TV. A black cape with a red edge glow spreads down behind the crowd characters. **Credit it in the caption.**
+- **Masked slasher:** a giant hooded, Ghostface-style figure looms from above, centred behind the TV and bigger than the crowd. Its eyes stare out above the TV, its screaming mouth shows below it, and it has a red rim light and the halftone halo in front.

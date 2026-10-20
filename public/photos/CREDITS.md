@@ -10,7 +10,3 @@
 
 CC BY photos need a credit line wherever the poster is posted, e.g. in the caption:
 "BG photos: Grmisiti (CC BY 2.0)".
-
-| ghostface-hood-cut.png | "ExpoSYFY - Scream - A Nightmare on Elm Street" (flickr 10772950845 / Wikimedia Commons), cut out | Urko Dorronsoro Sagasti | CC BY-SA 2.0 |
-
-The Ghostface photo is CC BY-SA 2.0. Credit it wherever the poster is posted, for example "Ghostface photo: Urko Dorronsoro (CC BY-SA 2.0)". ShareAlike means that a design built on it should be shared under the same licence.
