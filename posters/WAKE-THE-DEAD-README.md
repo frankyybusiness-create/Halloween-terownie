@@ -67,3 +67,11 @@ Files: `terownie-popup-comic-cover-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png
 - **Style:** a vintage horror comic-book cover with a "No. 30 / OCT" issue box, a sunset sky, a full moon with rays, and bats.
 - **Characters:** the event's pumpkin host asks "GUESS WHO'S POPPING UP?" A tilted guest card styled like the flyer's DJ cards carries the Terownie logo, "SIP AND KILL" and "HALLOWEEN POP-UP", with a "POP-UP ALERT!" burst and "WILL BE THERE!" below. The costume crowd peeks up from the bottom, asking "IS THAT... TEROWNIE?!".
 - **Footer:** "Friday the 30th of October · Doors open at 3PM" and the Twin-Peaks Mountain venue box.
+
+## Retro TV pop-up poster
+Files: `terownie-popup-retro-tv-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-tv.html`.
+Each element is borrowed from one of the reference posters:
+- **Fright Night:** a tall, condensed serif title with spaced-out lettering underneath, over a halftone crowd glowing red.
+- **Halloween Retro Party:** a vintage CRT TV showing the event's pumpkin host, ringed by a red dot halo, and a facts bar split by dividers.
+- **Disco Devil:** the "A HALLOWEEN POP-UP BY" lockup with the Terownie logo and a torn red "SIP AND KILL" strip.
+- **Red Halloween Party flyer:** distressed sparkles, a "30 OCT" corner stamp, ★★★, and a hand-drawn circle around the venue.
