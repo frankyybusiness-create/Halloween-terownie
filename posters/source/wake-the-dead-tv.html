@@ -112,7 +112,7 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     // ── 02 red dot halo behind the TV (Halloween Retro Party) ──
     const TVX = 540, TVY = 640;
     const ha = layer('02-dot-halo');
-    { const r = rng(4); ha.fillStyle = RD; ha.beginPath();
+    { const r = rng(4); ha.fillStyle = '#' + (new URLSearchParams(location.search).get('halo') || 'D3242C'); ha.beginPath();
       for (let y = TVY - 330; y < TVY + 330; y += 11) for (let x = TVX - 420; x < TVX + 420; x += 11) { const d = Math.hypot((x - TVX) / 400, (y - TVY) / 300); if (d > 1.05 || d < .55) continue; const rr = 4.6 * (1 - Math.abs(d - .82) / .25) * (.8 + r() * .4); if (rr > .6) { ha.moveTo(x + rr, y); ha.arc(x, y, rr, 0, 7); } }
       ha.fill(); }
 

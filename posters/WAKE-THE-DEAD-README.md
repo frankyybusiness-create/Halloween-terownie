@@ -75,3 +75,7 @@ Each element is borrowed from one of the reference posters:
 - **Halloween Retro Party:** a vintage CRT TV showing the event's pumpkin host in full colour with scanlines, ringed by a red dot halo, and a facts bar split by dividers. The background crowd has a faint colour wash.
 - **Disco Devil:** the "A HALLOWEEN POP-UP BY" lockup with the Terownie logo and a torn red "SIP AND KILL" strip.
 - **Red Halloween Party flyer:** distressed sparkles, a "30 OCT" corner stamp, ★★★, and a hand-drawn circle around the venue.
+
+### Halo colour versions
+`retro-tv-halo-colors/` has the same retro TV poster in seven halo colours: orange, gold, cream, purple, acid green, electric blue and hot pink. Only the halftone dot halo around the TV changes. `_compare.jpg` shows them side by side with the original red. To render another colour:
+`NODE_PATH=$(npm root -g) node posters/source/render.cjs posters/source/wake-the-dead-tv.html <outDir> 3 halo=F5921E`
