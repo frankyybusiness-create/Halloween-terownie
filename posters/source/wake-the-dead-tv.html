@@ -100,8 +100,11 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     // ── 01 background: charcoal, red glow, faint red halftone crowd (Fright Night), dot grid ──
     const bg = layer('01-background');
     bg.fillStyle = BG; bg.fillRect(0, 0, W, H);
-    { const c = halftone(crowd, [0, 0, crowd.width, crowd.height], W, W * crowd.height / crowd.width, { color: '#5E1216', spacing: 7, lo: .1, hi: .9, invert: false, gain: 1, seed: 2 });
-      bg.globalAlpha = .55; const ch = W * crowd.height / crowd.width; bg.drawImage(c, 0, -120, W, ch); bg.drawImage(c, 0, -120 + ch, W, ch); bg.globalAlpha = 1; }
+    { // one cover-fit crowd image (no tiling seam): red dots + a faint colour wash
+      const cw = crowd.height * W / H, crop = [(crowd.width - cw) / 2, 0, cw, crowd.height];
+      const c = halftone(crowd, crop, W, H, { color: '#5E1216', spacing: 7, lo: .1, hi: .9, invert: false, gain: 1, seed: 2 });
+      bg.globalAlpha = .55; bg.drawImage(c, 0, 0, W, H);
+      bg.globalAlpha = .13; bg.filter = 'saturate(1.4)'; bg.drawImage(crowd, ...crop, 0, 0, W, H); bg.filter = 'none'; bg.globalAlpha = 1; }
     let g = bg.createRadialGradient(540, 620, 60, 540, 620, 620); g.addColorStop(0, 'rgba(211,36,44,.38)'); g.addColorStop(1, 'rgba(211,36,44,0)'); bg.fillStyle = g; bg.fillRect(0, 0, W, H);
     g = bg.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(20,16,17,.85)'); g.addColorStop(.25, 'rgba(20,16,17,.2)'); g.addColorStop(.75, 'rgba(20,16,17,.25)'); g.addColorStop(1, 'rgba(20,16,17,.9)'); bg.fillStyle = g; bg.fillRect(0, 0, W, H);
     bg.fillStyle = 'rgba(0,0,0,.35)'; for (let y = 0; y < H; y += 6) for (let x = 0; x < W; x += 6) { bg.fillRect(x, y, 2.2, 2.2); }
@@ -135,9 +138,14 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     const SX = BX + 44, SY = BY + 44, SW = BW - 154, SH = BH - 88;
     tv.save(); rr(SX, SY, SW, SH, 40); tv.clip();
     tv.fillStyle = '#2B0507'; tv.fillRect(SX, SY, SW, SH);
-    { const crop = [40, 0, host.width - 80, (host.width - 80) * SH / SW]; const ht = halftone(host, crop, SW, SH, { color: '#FF4A3D', spacing: 3.8, lo: .06, hi: .85, invert: false, gamma: 1.1, gain: 1.15, seed: 7 }); tv.drawImage(ht, SX, SY, SW, SH); }
-    tv.fillStyle = 'rgba(0,0,0,.35)'; for (let y = SY; y < SY + SH; y += 4) tv.fillRect(SX, y, SW, 1.6);
-    g = tv.createRadialGradient(SX + SW / 2, SY + SH / 2, SH * .2, SX + SW / 2, SY + SH / 2, SW * .7); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.75)'); tv.fillStyle = g; tv.fillRect(SX, SY, SW, SH);
+    { // full-colour host so the character pops, with a little CRT colour bleed
+      const cw = host.width - 80, chh = cw * SH / SW;
+      tv.save(); tv.filter = 'saturate(1.55) contrast(1.18) brightness(1.08)'; tv.drawImage(host, 40, 0, cw, chh, SX, SY, SW, SH);
+      tv.globalCompositeOperation = 'screen'; tv.globalAlpha = .22; tv.filter = 'blur(2px)'; tv.drawImage(host, 40, 0, cw, chh, SX + 4, SY, SW, SH); tv.restore();
+      // fine RGB dot mask
+      tv.fillStyle = 'rgba(0,0,0,.18)'; for (let x = SX; x < SX + SW; x += 3) tv.fillRect(x, SY, 1, SH); }
+    tv.fillStyle = 'rgba(0,0,0,.28)'; for (let y = SY; y < SY + SH; y += 4) tv.fillRect(SX, y, SW, 1.6);
+    g = tv.createRadialGradient(SX + SW / 2, SY + SH / 2, SH * .2, SX + SW / 2, SY + SH / 2, SW * .7); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.6)'); tv.fillStyle = g; tv.fillRect(SX, SY, SW, SH);
     g = tv.createLinearGradient(SX, SY, SX + SW * .6, SY + SH * .6); g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(.5, 'rgba(255,255,255,0)'); tv.fillStyle = g; tv.fillRect(SX, SY, SW, SH);
     tv.restore();
     // legs
@@ -148,7 +156,7 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     const ty = layer('04-type');
     text(ty, 'P U M P . B O Y Z   ×   E V P H O R I A   P R E S E N T', 'Mont', 17, W / 2, 70, CRM, { align: 'center', track: 2 });
     fit(ty, 'WAKE THE DEAD', 'Play', 70, 96, 940, 160, CRM, { track: 1 });
-    text(ty, 'H O U S E   P A R T Y   —   H A L L O W E E N   S P E C I A L', 'Mont', 22, W / 2, 305, RD, { align: 'center', track: 3 });
+    text(ty, 'H O U S E   P A R T Y   —   H A L L O W E E N   S P E C I A L', 'MontB', 22, W / 2, 305, '#EE3B42', { align: 'center', track: 3 });
     // corner stamp (red flyer)
     ty.save(); ty.translate(925, 400); ty.rotate(-.08); text(ty, '30', 'Anton', 64, 0, 0, CRM, { align: 'center' }); text(ty, 'OCT', 'Anton', 34, 0, 36, CRM, { align: 'center', track: 4 }); ty.restore();
     for (const [x, y] of [[110, 380], [140, 380], [170, 380]]) star(ty, x, y, 10, CRM);

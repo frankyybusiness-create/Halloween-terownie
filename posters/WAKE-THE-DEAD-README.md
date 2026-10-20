@@ -72,6 +72,6 @@ Files: `terownie-popup-comic-cover-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png
 Files: `terownie-popup-retro-tv-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-tv.html`.
 Each element is borrowed from one of the reference posters:
 - **Fright Night:** a tall, condensed serif title with spaced-out lettering underneath, over a halftone crowd glowing red.
-- **Halloween Retro Party:** a vintage CRT TV showing the event's pumpkin host, ringed by a red dot halo, and a facts bar split by dividers.
+- **Halloween Retro Party:** a vintage CRT TV showing the event's pumpkin host in full colour with scanlines, ringed by a red dot halo, and a facts bar split by dividers. The background crowd has a faint colour wash.
 - **Disco Devil:** the "A HALLOWEEN POP-UP BY" lockup with the Terownie logo and a torn red "SIP AND KILL" strip.
 - **Red Halloween Party flyer:** distressed sparkles, a "30 OCT" corner stamp, ★★★, and a hand-drawn circle around the venue.
