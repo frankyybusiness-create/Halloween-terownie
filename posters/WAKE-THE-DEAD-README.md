@@ -93,3 +93,4 @@ Each element is borrowed from one of the reference posters:
 - **Reloaded:** a faint plastic-wrap sheen.
 - **Red Halloween Party flyer:** corner stamps with the event's real house rules, "COSTUME IS A MUST" and "STRICTLY NO MINORS".
 - **"SIP AND KILL":** now set in Creepster, a drippy horror font, in cream with a dark blood shadow.
+- **Background crowd:** zoomed out so the characters are recognisable and peek around the TV, with a crisp red-and-black duotone and halftone dots instead of the blur, fading softly at the top and bottom.
