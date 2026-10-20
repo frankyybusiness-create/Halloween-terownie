@@ -127,14 +127,14 @@ function bubble(ctx, cx, cy, rx, ry, tx, ty) { ctx.fillStyle = '#FFF8E8'; ctx.st
 
     // ── 02 hero: the event's pumpkin host ──
     const hr = layer('02-pumpkin-host');
-    { const hw = 600, hh = hw * host.height / host.width; hr.drawImage(host, 80, 300, hw, hh); }
+    { const hw = 470, hh = hw * host.height / host.width; hr.drawImage(host, 110, 362, hw, hh); }
     // speech bubble from the host
-    bubble(hr, 250, 330, 165, 70, 330, 420);
-    fit(hr, 'GUESS WHO’S', 'Bang', 140, 290, 220, 30, INK, { track: 1 }); fit(hr, 'POPPING UP?', 'Bang', 128, 328, 244, 34, '#C8231B', { track: 1 });
+    bubble(hr, 215, 318, 150, 52, 300, 400);
+    fit(hr, 'GUESS WHO’S', 'Bang', 125, 284, 180, 24, INK, { track: 1 }); fit(hr, 'POPPING UP?', 'Bang', 110, 314, 210, 30, '#C8231B', { track: 1 });
 
     // ── 03 pop-up card (styled like the event's DJ cards) ──
     const cd = layer('03-guest-card');
-    { cd.save(); cd.translate(800, 650); cd.rotate(.09); const cw = 330, ch = 420;
+    { cd.save(); cd.translate(805, 600); cd.rotate(.09); cd.scale(.88, .88); const cw = 330, ch = 420;
       cd.fillStyle = 'rgba(0,0,0,.35)'; cd.fillRect(-cw / 2 + 12, -ch / 2 + 14, cw, ch);
       cd.fillStyle = CREAM; cd.fillRect(-cw / 2, -ch / 2, cw, ch); cd.lineWidth = 5; cd.strokeStyle = INK; cd.strokeRect(-cw / 2, -ch / 2, cw, ch);
       cd.fillStyle = INK; cd.fillRect(-cw / 2 + 18, -ch / 2 + 46, cw - 36, 270);
@@ -144,19 +144,19 @@ function bubble(ctx, cx, cy, rx, ry, tx, ty) { ctx.fillStyle = '#FFF8E8'; ctx.st
       fit(cd, 'SIP AND KILL', 'Bang', -cw / 2 + 40, ch / 2 - 88, cw - 80, 40, INK, { track: 3 });
       fit(cd, 'HALLOWEEN POP-UP', 'Bang', -cw / 2 + 70, ch / 2 - 38, cw - 140, 18, '#C8231B', { track: 2 });
       cd.restore(); }
-    burst(cd, 905, 420, 135, 82, 14, YEL, 7);
-    cd.save(); cd.translate(905, 420); cd.rotate(.12); fit(cd, 'POP-UP', 'Bang', -62, -34, 124, 30, INK, { track: 2 }); fit(cd, 'ALERT!', 'Bang', -64, 4, 128, 32, '#C8231B', { track: 2 }); cd.restore();
-    fitInk(cd, 'WILL BE THERE!', 'Creep', 590, 880, 420, 58, YEL, { track: 2, line: 4, shadow: 6 });
+    burst(cd, 915, 400, 125, 76, 14, YEL, 7);
+    cd.save(); cd.translate(915, 400); cd.rotate(.12); cd.scale(.92, .92); fit(cd, 'POP-UP', 'Bang', -62, -34, 124, 30, INK, { track: 2 }); fit(cd, 'ALERT!', 'Bang', -64, 4, 128, 32, '#C8231B', { track: 2 }); cd.restore();
+    fitInk(cd, 'WILL BE THERE!', 'Creep', 610, 806, 400, 52, YEL, { track: 2, line: 4, shadow: 6 });
 
     // ── 04 crowd panel at the bottom: the event's shocked costume crowd looking up ──
     const cr = layer('04-crowd-panel');
-    const CY = 948, CH = 180;
+    const CY = 868, CH = 306;
     cr.save(); cr.translate(W / 2, CY + CH / 2); cr.rotate(-.025);
     cr.fillStyle = INK; cr.fillRect(-IW / 2 - 6, -CH / 2 - 6, IW + 12, CH + 12);
-    const sh = crowd.width * CH / IW; cr.drawImage(crowd, 0, crowd.height * .1, crowd.width, sh, -IW / 2, -CH / 2, IW, CH);
+    const sh = crowd.width * CH / IW; cr.drawImage(crowd, 0, 48, crowd.width, sh, -IW / 2, -CH / 2, IW, CH);
     cr.restore();
-    bubble(cr, 900, 990, 136, 48, 830, 1050);
-    fit(cr, 'IS THAT... TEROWNIE?!', 'Bang', 788, 977, 224, 28, INK, { track: 1 });
+    bubble(cr, 205, 918, 150, 36, 175, 975);
+    fit(cr, 'IS THAT... TEROWNIE?!', 'Bang', 90, 906, 230, 24, INK, { track: 1 });
 
     // ── 05 masthead + footer ──
     const mh = layer('05-masthead');
@@ -168,13 +168,13 @@ function bubble(ctx, cx, cy, rx, ry, tx, ty) { ctx.fillStyle = '#FFF8E8'; ctx.st
     fitInk(mh, 'WAKE THE DEAD', 'Creep', X0 + 156, Y0 + 70, IW - 176, 120, ORANGE, { track: 3, line: 7, shadow: 9 });
     fitInk(mh, 'HOUSE PARTY — HALLOWEEN SPECIAL', 'Bang', X0 + 220, Y0 + 210, IW - 300, 28, CREAM, { track: 4, line: 3 });
     // footer: date (drippy red) + venue box (orange), like the event flyer
-    const FY = 1148;
+    const FY = 1180;
     fitInk(mh, 'DOORS OPEN AT 3PM', 'Bang', X0 + 24, FY, 250, 26, YEL, { track: 2, line: 3 });
     fitInk(mh, 'FRIDAY THE 30TH', 'Creep', X0 + 24, FY + 36, 470, 60, '#E8402E', { track: 2, line: 4, shadow: 5 });
-    fitInk(mh, 'OF OCTOBER', 'Creep', X0 + 270, FY + 112, 224, 28, '#E8402E', { track: 2, line: 3 });
-    mh.save(); mh.translate(800, FY + 78); mh.rotate(-.02); mh.fillStyle = ORANGE; roughRect(mh, -230, -66, 460, 132, 5, 4); mh.fill(); mh.lineWidth = 5; mh.strokeStyle = INK; mh.stroke();
-    fit(mh, 'TWIN-PEAKS', 'Creep', -196, -52, 392, 40, '#FFF1D6', { track: 2 }); fit(mh, 'MOUNTAIN', 'Creep', -150, -4, 300, 34, '#FFF1D6', { track: 2 });
-    fit(mh, 'BRGY. DAPDAP, TAYABAS CITY', 'Bang', -190, 40, 380, 18, INK, { track: 2 }); mh.restore();
+    fitInk(mh, 'OF OCTOBER', 'Creep', X0 + 270, FY + 104, 224, 26, '#E8402E', { track: 2, line: 3 });
+    mh.save(); mh.translate(800, FY + 68); mh.rotate(-.02); mh.fillStyle = ORANGE; roughRect(mh, -230, -60, 460, 122, 5, 4); mh.fill(); mh.lineWidth = 5; mh.strokeStyle = INK; mh.stroke();
+    fit(mh, 'TWIN-PEAKS', 'Creep', -196, -48, 392, 36, '#FFF1D6', { track: 2 }); fit(mh, 'MOUNTAIN', 'Creep', -150, -4, 300, 30, '#FFF1D6', { track: 2 });
+    fit(mh, 'BRGY. DAPDAP, TAYABAS CITY', 'Bang', -190, 36, 380, 16, INK, { track: 2 }); mh.restore();
     // cover frame
     mh.lineWidth = 6; mh.strokeStyle = INK; mh.strokeRect(X0, Y0, IW, Y1 - Y0);
 
