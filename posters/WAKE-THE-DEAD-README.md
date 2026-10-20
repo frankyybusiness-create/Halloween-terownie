@@ -99,5 +99,4 @@ Each element is borrowed from one of the reference posters:
 ## Retro TV poster: vintage print edition
 Files: `terownie-popup-retro-print-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-tv-retro.html`.
 - **Base:** the retro TV poster without Ghostface, with an identical layout.
-- **Retro finish:** a faded, warm vintage colour grade with lifted blacks and yellowed whites, faint ink misregistration, a worn cream print border, and paper grain.
-- **Border captions:** "NO. 30 — OCTOBER EDITION" and "@TEROWNIE_CAFE".
+- **Retro finish:** a faded, warm vintage colour grade with lifted blacks and yellowed whites, faint ink misregistration and paper grain. It's full-bleed, with no border.

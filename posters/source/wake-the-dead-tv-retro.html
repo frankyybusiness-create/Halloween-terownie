@@ -250,7 +250,7 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
       const lb = layer('10-film-burn'); v = lb.createRadialGradient(0, 0, 0, 0, 0, 420); v.addColorStop(0, 'rgba(255,120,40,.45)'); v.addColorStop(1, 'rgba(255,120,40,0)'); lb.fillStyle = v; lb.fillRect(0, 0, W, H);
       v = lb.createRadialGradient(W, H, 0, W, H, 380); v.addColorStop(0, 'rgba(230,40,40,.35)'); v.addColorStop(1, 'rgba(230,40,40,0)'); lb.fillStyle = v; lb.fillRect(0, 0, W, H);
       fin.globalCompositeOperation = 'screen'; fin.drawImage(lb.canvas, 0, 0); fin.globalCompositeOperation = 'source-over'; }
-    { // ── retro finish: faded vintage grade, slight misregistration, worn cream print border ──
+    { // ── retro finish: faded vintage grade, slight misregistration, no border ──
       const src = OUT.poster, PW = src.width, PH = src.height;
       const gr = cv(PW, PH), g2 = gr.getContext('2d'); g2.drawImage(src, 0, 0);
       const id = g2.getImageData(0, 0, PW, PH), d = id.data;
@@ -264,17 +264,11 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
       const fin2 = layer('poster-retro'); fin2.setTransform(1, 0, 0, 1, 0, 0);
       const PAPER2 = '#E9DCC0'; fin2.fillStyle = PAPER2; fin2.fillRect(0, 0, PW, PH);
       { const r = rng(14); for (let i = 0; i < 18; i++) { const x = r() * PW, y = r() * PH, rad = (60 + r() * 220) * S, g = fin2.createRadialGradient(x, y, 0, x, y, rad); g.addColorStop(0, `rgba(150,105,50,${.05 + r() * .08})`); g.addColorStop(1, 'rgba(150,105,50,0)'); fin2.fillStyle = g; fin2.fillRect(0, 0, PW, PH); } }
-      const B = 30 * S, iw = PW - 2 * B, ih = PH - 2 * B;
+      const B = 0, iw = PW - 2 * B, ih = PH - 2 * B;
       fin2.save(); fin2.beginPath(); fin2.rect(B, B, iw, ih); fin2.clip();
       fin2.drawImage(gr, B, B, iw, ih);
       fin2.globalCompositeOperation = 'screen'; fin2.globalAlpha = .1; fin2.drawImage(gr, B + 3 * S, B, iw, ih);
       fin2.restore();
-      // ragged inner edge where the ink meets the paper
-      fin2.strokeStyle = PAPER2; fin2.lineWidth = 2.5 * S; { const r = rng(3); fin2.beginPath(); for (let t = 0; t < 4; t++) for (let k = 0; k <= 200; k++) { const u = k / 200, j = (r() - .5) * 2.2 * S;
-        const [x, y] = t === 0 ? [B + u * iw, B + j] : t === 1 ? [B + iw + j, B + u * ih] : t === 2 ? [B + iw - u * iw, B + ih + j] : [B + j, B + ih - u * ih]; k ? fin2.lineTo(x, y) : fin2.moveTo(x, y); } fin2.stroke(); }
-      // small caption on the border, like a vintage print run
-      fin2.fillStyle = '#6B4A35'; fin2.font = `${11 * S}px Mont`; fin2.letterSpacing = `${3 * S}px`; fin2.textBaseline = 'middle';
-      fin2.fillText('NO. 30 — OCTOBER EDITION', B, PH - B / 2); fin2.textAlign = 'right'; fin2.fillText('@TEROWNIE_CAFE', PW - B, PH - B / 2);
       // paper grain over everything
       fin2.globalCompositeOperation = 'multiply'; fin2.globalAlpha = .35; fin2.drawImage(OUT['07-grain'], 0, 0); fin2.globalAlpha = 1; fin2.globalCompositeOperation = 'source-over';
       OUT.poster = fin2.canvas; delete OUT['poster-retro']; }
