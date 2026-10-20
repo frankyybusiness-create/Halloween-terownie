@@ -36,3 +36,11 @@ The poster has **no logo**. The cream tag at the bottom right is left empty for 
 
 ## Photo credits
 The scream panel and the crowd band use CC BY 2.0 photos by Grmisiti. When you post the poster, add this line to the caption: "Photos: Grmisiti (CC BY 2.0)". See `public/photos/CREDITS.md`.
+
+## Version B: horror-movie one-sheet
+Files: `wake-the-dead-b-3240x4050.jpg`, `wake-the-dead-b-print.pdf`, `wake-the-dead-b-1080x1350.png`. Source: `source/wake-the-dead-b.html`.
+- **Layout:** a full-bleed black sheet instead of the newspaper grid. A big red halftone scream with CRT scanlines fills the top and fades into black.
+- **Type:** WAKE THE runs across the top, and a full-width DEAD sits over the mouth, in cream with a red offset shadow.
+- **Facts:** the date and venue are on torn strips, the ₱400 early price is a rubber-stamp disc, and the DJs, inside list and house rules are in a movie-poster credits block at the bottom.
+- **Logo:** the empty black area at the bottom right (x 830, y 1120, 202 × 150 in 1080 × 1350 units) is for your logo, above the "HALLOWEEN POP-UP · SIP AND KILL" caption. There is still no logo on the poster.
+- **Photo credit:** the same as version A. Add "Photos: Grmisiti (CC BY 2.0)" to the caption.
