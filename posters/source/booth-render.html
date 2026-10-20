@@ -1,0 +1,319 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#111}canvas{width:900px}</style>
+<script type="importmap">{"imports":{"three":"../../node_modules/three/build/three.module.js","three/addons/":"../../node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+// Terownie SIP AND KILL booth: polished render of the owner's mockup.
+// Kept from the mockup: white 3x3 m pop-up canopy with black legs + scissor truss, hung back banner with the two
+// spray-painted spiral eyes + red splatter, black patterned throw over a folding table with fringe, low 2-tier rack
+// in front-left with glowing cones + LED strip, plush bear on the table, plush panda + red mushroom lamp on the rack,
+// menu board + red straw cup, three red camping lanterns, two potted olive trees, on grass at night.
+// Changed: palette moved from navy/blue to black + blood red + cream (matches the WAKE THE DEAD poster), printed
+// front valance and a torn-strip table banner for signage, a drink display, uplights on the banner, a few pumpkins.
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const S = +(new URLSearchParams(location.search).get('s') || 1);
+const RW = 1200 * S, RH = 800 * S;
+const ROOT = '../../';
+const RED = '#B3141C', CREAM = '#E6D9BD', INK = '#130E0E';
+window.OUT = {};
+function rng(s) { return () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function cv(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function tex(w, h, draw, { repeat, srgb = true } = {}) {
+  const c = cv(w, h); draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c);
+  if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); }
+  return t;
+}
+function speckle(x, w, h, n, col, seed, a = .5) { const r = rng(seed); x.fillStyle = col; for (let i = 0; i < n; i++) { x.globalAlpha = r() * a; x.fillRect(r() * w, r() * h, 1 + r() * 2, 1 + r() * 2); } x.globalAlpha = 1; }
+function star(x, cx, cy, r, inner = .42, pts = 5) { x.beginPath(); for (let i = 0; i < pts * 2; i++) { const a = -Math.PI / 2 + i * Math.PI / pts, rr = i % 2 ? r * inner : r; x.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } x.closePath(); x.fill(); }
+/** draw text with cap height h and width w (poster-style fitted type) */
+function fit(x, s, fam, px, py, w, h, col, track = 0) {
+  x.save(); x.font = `200px ${fam}`; x.letterSpacing = track + 'px'; const m = x.measureText(s), cap = m.actualBoundingBoxAscent, tw = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+  x.translate(px, py + h); x.scale(w / tw, h / cap); x.fillStyle = col; x.fillText(s, m.actualBoundingBoxLeft, 0); x.restore();
+}
+function wearCanvas(x, w, h, amt, seed) { const r = rng(seed); x.save(); x.globalCompositeOperation = 'destination-out'; for (let i = 0; i < w * h * amt / 40; i++) { x.globalAlpha = .5 + r() * .5; x.fillRect(r() * w, r() * h, 1 + r() * 3, 1 + r() * 2.5); } x.restore(); }
+
+(async () => {
+  try {
+    for (const [fam, file] of [['Anton', 'anton/files/anton-latin-400-normal.woff2'], ['Oswald', 'oswald/files/oswald-latin-600-normal.woff2']]) {
+      const f = new FontFace(fam, `url(${ROOT}node_modules/@fontsource/${file})`); await f.load(); document.fonts.add(f);
+    }
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer.setSize(RW, RH); renderer.setPixelRatio(1);
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.3;
+    document.body.appendChild(renderer.domElement);
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07080a, .03);
+    const camera = new THREE.PerspectiveCamera(36, RW / RH, .1, 100);
+    camera.position.set(.1, 1.62, 6.1); camera.lookAt(0, 1.45, 0);
+
+    const std = (o) => new THREE.MeshStandardMaterial(o);
+    const add = (geo, mat, pos = [0, 0, 0], rot = [0, 0, 0], { cast = true, receive = true, parent = scene } = {}) => {
+      const m = new THREE.Mesh(geo, mat); m.position.set(...pos); m.rotation.set(...rot); m.castShadow = cast; m.receiveShadow = receive; parent.add(m); return m;
+    };
+
+    // ── backdrop: night sky, tree line, a lit house far left (blurred, like the mockup's background) ──
+    const bgTex = tex(2048, 1024, (x, w, h) => {
+      let g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#030406'); g.addColorStop(.6, '#0a0c10'); g.addColorStop(1, '#0d0f0d'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+      x.filter = 'blur(6px)';
+      // tree line silhouettes
+      const r = rng(3); x.fillStyle = '#060706';
+      for (let i = 0; i < 70; i++) { const tx = r() * w, ty = 480 + r() * 220, rr = 60 + r() * 150; x.beginPath(); x.arc(tx, ty, rr, 0, 7); x.fill(); }
+      x.fillRect(0, 640, w, 400);
+      // house, left, in front of the tree line
+      x.fillStyle = '#17140f'; x.fillRect(420, 520, 240, 180); x.fillStyle = '#100d0a'; x.beginPath(); x.moveTo(405, 525); x.lineTo(540, 470); x.lineTo(675, 525); x.fill();
+      for (const [wx, wy] of [[450, 550], [525, 550], [600, 550], [450, 625]]) { x.fillStyle = 'rgba(255,185,105,.75)'; x.fillRect(wx, wy, 30, 30); }
+      const lg = x.createRadialGradient(540, 690, 5, 540, 690, 110); lg.addColorStop(0, 'rgba(255,200,130,.35)'); lg.addColorStop(1, 'rgba(255,200,130,0)'); x.fillStyle = lg; x.fillRect(400, 580, 280, 220);
+      // a couple of far cars' tail-lights / street glow, right
+      x.fillStyle = 'rgba(150,170,200,.25)'; x.fillRect(1500, 700, 360, 90);
+      x.filter = 'none';
+    });
+    add(new THREE.PlaneGeometry(64, 32), new THREE.MeshBasicMaterial({ map: bgTex, fog: false }), [0, 9, -22], [0, 0, 0], { cast: false, receive: false });
+
+    // ── grass ──
+    const grassTex = tex(1024, 1024, (x, w, h) => {
+      x.fillStyle = '#24401a'; x.fillRect(0, 0, w, h); const r = rng(7);
+      for (let i = 0; i < 26000; i++) { const px = r() * w, py = r() * h, l = 22 + r() * 30; x.strokeStyle = `hsl(${92 + r() * 20},${45 + r() * 25}%,${l * .6}%)`; x.lineWidth = 1 + r(); x.beginPath(); x.moveTo(px, py); x.lineTo(px + (r() - .5) * 6, py - 4 - r() * 8); x.stroke(); }
+    }, { repeat: [14, 14] });
+    const grass = add(new THREE.PlaneGeometry(40, 40), std({ map: grassTex, roughness: .95 }), [0, 0, 0], [-Math.PI / 2, 0, 0], { cast: false });
+    // a few fallen leaves / crab-apples like the mockup lawn
+    { const r = rng(17), geo = new THREE.SphereGeometry(.025, 8, 6), mat = std({ color: 0x5e6a2a, roughness: .8 }); const im = new THREE.InstancedMesh(geo, mat, 50); const m4 = new THREE.Matrix4();
+      for (let i = 0; i < 50; i++) { m4.makeTranslation(1 + r() * 5, .015, -2 + r() * 5.5); im.setMatrixAt(i, m4); } im.receiveShadow = true; scene.add(im); }
+
+    // ── canopy ──
+    const black = std({ color: 0x121214, roughness: .45, metalness: .6 });
+    const FW = 3, EAVE = 2.18;
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+      add(new THREE.BoxGeometry(.05, EAVE, .05), black, [sx * FW / 2, EAVE / 2, sz * FW / 2]);
+      add(new THREE.BoxGeometry(.13, .015, .13), black, [sx * FW / 2, .008, sz * FW / 2]); // foot plate
+      add(new THREE.BoxGeometry(.07, .12, .07), black, [sx * FW / 2, 1.6, sz * FW / 2]); // slider
+    }
+    // top rails + scissor truss on all four sides
+    const bar = (a, b, t = .028) => { const d = new THREE.Vector3().subVectors(b, a), m = add(new THREE.BoxGeometry(t, t, d.length()), black, [0, 0, 0]); m.position.copy(a).add(b).multiplyScalar(.5); m.lookAt(b); return m; };
+    const V = (x, y, z) => new THREE.Vector3(x, y, z);
+    for (const side of [0, 1, 2, 3]) {
+      const c = [[-1, -1], [1, -1], [1, 1], [-1, 1]], [ax, az] = c[side], [bx, bz] = c[(side + 1) % 4], h = FW / 2;
+      bar(V(ax * h, EAVE, az * h), V(bx * h, EAVE, bz * h), .035);
+      for (let k = 0; k < 2; k++) { const t0 = k / 2, t1 = (k + 1) / 2, L = (t) => V((ax + (bx - ax) * t) * h, 0, (az + (bz - az) * t) * h);
+        const p0 = L(t0), p1 = L(t1); bar(V(p0.x, EAVE - .02, p0.z), V(p1.x, EAVE - .34, p1.z)); bar(V(p0.x, EAVE - .34, p0.z), V(p1.x, EAVE - .02, p1.z)); }
+    }
+    // roof: white fabric pyramid + valance
+    const fabric = std({ color: 0xf2f0ea, roughness: .9, side: THREE.DoubleSide });
+    const roof = add(new THREE.ConeGeometry(FW / Math.SQRT2 + .02, .78, 4, 1, true), fabric, [0, EAVE + .25 + .39, 0], [0, Math.PI / 4, 0]);
+    const valH = .27;
+    const valTex = tex(2048, 184, (x, w, h) => { // printed front valance: black with cream type + red stars
+      x.fillStyle = '#141112'; x.fillRect(0, 0, w, h);
+      fit(x, 'SIP AND KILL', 'Anton', 610, 34, 830, 116, CREAM, 10);
+      x.fillStyle = RED; star(x, 520, h / 2, 34); star(x, w - 520, h / 2, 34);
+      fit(x, 'HALLOWEEN POP-UP', 'Oswald', 60, 72, 360, 40, '#9d9488', 4); fit(x, 'WAKE THE DEAD', 'Oswald', w - 400, 72, 340, 40, '#9d9488', 4);
+      wearCanvas(x, w, h, .5, 3);
+    });
+    const plainVal = std({ color: 0xf2f0ea, roughness: .9 });
+    for (const [i, rotY] of [[0, 0], [1, Math.PI / 2], [2, Math.PI], [3, -Math.PI / 2]]) {
+      const g = new THREE.Group(); g.rotation.y = rotY; scene.add(g);
+      add(new THREE.PlaneGeometry(FW + .04, valH), i === 0 ? std({ map: valTex, roughness: .85 }) : plainVal, [0, EAVE + valH / 2 - .02, FW / 2 + .02], [0, 0, 0], { parent: g });
+      add(new THREE.PlaneGeometry(FW + .04, .25), fabric, [0, EAVE + .25 + .12 - .02, FW / 2 + .015], [0, 0, 0], { parent: g, cast: false });
+    }
+
+    // ── back banner: black fabric, spray-painted spiral eyes in cream, red splatter + drips ──
+    const bannerTex = tex(2048, 1344, (x, w, h) => {
+      x.fillStyle = '#17151a'; x.fillRect(0, 0, w, h); speckle(x, w, h, 90000, '#2a2730', 2, .6); speckle(x, w, h, 40000, '#0a090b', 3, .6);
+      // spray helper: soft overspray + hard core stroke
+      const spray = (pathFn, wid, col) => { x.save(); x.strokeStyle = col; x.lineCap = 'round'; x.lineJoin = 'round';
+        x.filter = 'blur(14px)'; x.globalAlpha = .35; x.lineWidth = wid * 2.2; pathFn(); x.stroke();
+        x.filter = 'blur(1.5px)'; x.globalAlpha = 1; x.lineWidth = wid; pathFn(); x.stroke(); x.restore(); };
+      const drips = (pts, col, seed) => { const r = rng(seed); x.fillStyle = col; for (const [px, py] of pts) { const len = 40 + r() * 170, ww = 7 + r() * 7; x.fillRect(px - ww / 2, py, ww, len); x.beginPath(); x.arc(px, py + len, ww * .75, 0, 7); x.fill(); } };
+      const r = rng(9);
+      for (const cx of [w * .31, w * .69]) {
+        const cy = h * .52, dir = cx < w / 2 ? 1 : -1;
+        const spiral = () => { x.beginPath(); for (let t = 0; t < Math.PI * 5.2; t += .05) { const rr = 14 + t * 15.5; x.lineTo(cx + dir * Math.cos(t + Math.PI) * rr, cy + Math.sin(t + Math.PI) * rr * 1.05); } };
+        spray(spiral, 26, CREAM);
+        const brow = () => { x.beginPath(); x.moveTo(cx - dir * 230, cy - 250); x.quadraticCurveTo(cx - dir * 10, cy - 380, cx + dir * 150, cy - 400); };
+        spray(brow, 26, CREAM);
+        drips([[cx - dir * 220, cy - 248], [cx + dir * 60, cy - 372], [cx - dir * 120, cy + 255], [cx + dir * 240, cy + 40], [cx + dir * 10, cy + 268]], CREAM, cx | 0);
+        // blood splatter on each eye
+        for (let k = 0; k < 3; k++) { const sx = cx + (r() - .3) * 260 * dir, sy = cy + (r() - .5) * 260, R = 30 + r() * 45; x.fillStyle = RED; x.beginPath(); x.arc(sx, sy, R, 0, 7); x.fill();
+          for (let j = 0; j < 22; j++) { const a = r() * 7, d = R + r() * 110; x.beginPath(); x.arc(sx + Math.cos(a) * d, sy + Math.sin(a) * d, 2 + r() * 9, 0, 7); x.fill(); }
+          drips([[sx, sy + R * .6], [sx - R * .4, sy + R * .4]], RED, k * 7 + cx); }
+      }
+      wearCanvas(x, w, h, .15, 5);
+      // fabric folds: soft vertical shading
+      for (let i = 0; i < 9; i++) { const fx = (i + .5) * w / 9, g = x.createLinearGradient(fx - 120, 0, fx + 120, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(.5, 'rgba(0,0,0,.18)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(fx - 120, 0, 240, h); }
+    });
+    { const geo = new THREE.PlaneGeometry(2.9, 1.9, 60, 8), p = geo.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin(p.getX(i) * 9.5) * .018); geo.computeVertexNormals();
+      add(geo, std({ map: bannerTex, roughness: .92, side: THREE.DoubleSide }), [0, EAVE - .97, -FW / 2 + .04]); }
+    for (const sx of [-1.38, -.46, .46, 1.38]) add(new THREE.TorusGeometry(.02, .005, 6, 12), black, [sx, EAVE - .02, -FW / 2 + .04]);
+
+    // ── table + throw (black with cream line-art skulls, crossbones, bats) + fringe ──
+    const throwTex = tex(2048, 2048, (x, w, h) => {
+      x.fillStyle = '#121112'; x.fillRect(0, 0, w, h); speckle(x, w, h, 60000, '#242226', 4, .7);
+      x.strokeStyle = '#d9d2c3'; x.fillStyle = '#d9d2c3'; x.lineWidth = 9; x.lineCap = 'round'; const r = rng(21);
+      const skull = (cx, cy, s, rot) => { x.save(); x.translate(cx, cy); x.rotate(rot); x.scale(s, s);
+        x.beginPath(); x.arc(0, -10, 70, Math.PI * .85, Math.PI * 2.15); x.lineTo(42, 60); x.lineTo(-42, 60); x.closePath(); x.stroke();
+        for (const ex of [-27, 27]) { x.beginPath(); x.moveTo(ex - 16, -8); x.lineTo(ex + 16, 20); x.moveTo(ex + 16, -8); x.lineTo(ex - 16, 20); x.stroke(); } // X eyes
+        x.beginPath(); x.moveTo(-6, 34); x.lineTo(0, 24); x.lineTo(6, 34); x.stroke(); for (const tx of [-24, -8, 8, 24]) { x.beginPath(); x.moveTo(tx, 50); x.lineTo(tx, 64); x.stroke(); }
+        x.restore(); };
+      const bones = (cx, cy, s, rot) => { x.save(); x.translate(cx, cy); x.rotate(rot); x.scale(s, s); for (const a of [.7, -.7]) { x.save(); x.rotate(a); x.beginPath(); x.moveTo(-70, 0); x.lineTo(70, 0); x.stroke(); for (const e of [-70, 70]) { x.beginPath(); x.arc(e, -8, 9, 0, 7); x.arc(e, 8, 9, 0, 7); x.stroke(); } x.restore(); } x.restore(); };
+      const bat = (cx, cy, s) => { x.save(); x.translate(cx, cy); x.scale(s, s); x.beginPath(); x.moveTo(0, 0); x.quadraticCurveTo(-30, -30, -80, -10); x.quadraticCurveTo(-60, 0, -55, 18); x.quadraticCurveTo(-35, 5, -20, 20); x.quadraticCurveTo(-8, 8, 0, 18); x.quadraticCurveTo(8, 8, 20, 20); x.quadraticCurveTo(35, 5, 55, 18); x.quadraticCurveTo(60, 0, 80, -10); x.quadraticCurveTo(30, -30, 0, 0); x.fill(); x.restore(); };
+      for (let gy = 0; gy < 6; gy++) for (let gx = 0; gx < 6; gx++) { const cx = (gx + .5 + (gy % 2) * .5) * w / 6, cy = (gy + .5) * h / 6, k = (gx + gy) % 3;
+        if (k === 0) skull(cx, cy, 1.1 + r() * .3, (r() - .5) * .6); else if (k === 1) bones(cx, cy, 1, r() * 3); else bat(cx, cy, 1 + r() * .4); }
+      wearCanvas(x, w, h, .2, 8);
+    }, { repeat: [1.2, .42] });
+    const TW = 1.9, TD = .8, TH = .76, TZ = -.62;
+    add(new RoundedBoxGeometry(TW + .12, TH - .1, TD + .12, 4, .03), std({ map: throwTex, roughness: .97 }), [0, (TH - .1) / 2 + .1, TZ]);
+    const fringeTex = tex(1024, 64, (x, w, h) => { const r = rng(4); for (let i = 0; i < w; i += 5) { x.strokeStyle = r() < .5 ? '#d9d2c3' : '#151416'; x.lineWidth = 3; x.beginPath(); x.moveTo(i, 0); x.lineTo(i + (r() - .5) * 4, h - r() * 14); x.stroke(); } }, { repeat: [3, 1] });
+    const fringeMat = std({ map: fringeTex, transparent: true, alphaTest: .4, roughness: 1, side: THREE.DoubleSide });
+    add(new THREE.PlaneGeometry(TW + .12, .1), fringeMat, [0, .055, TZ + TD / 2 + .065]);
+
+    // torn-strip table banner (red, cream type) on the throw front
+    const stripTex = tex(1400, 300, (x, w, h) => {
+      const r = rng(5); x.fillStyle = RED; x.beginPath(); x.moveTo(10, 20); for (let t = 0; t <= w - 20; t += 14) x.lineTo(10 + t, 14 + r() * 18); x.lineTo(w - 4, h / 2);
+      for (let t = w - 20; t >= 0; t -= 14) x.lineTo(10 + t, h - 14 - r() * 18); x.lineTo(2, h / 2); x.fill();
+      fit(x, 'SIP AND KILL', 'Anton', 120, 70, w - 240, 120, CREAM, 6); fit(x, '★ HALLOWEEN MENU ★', 'Oswald', 420, 212, w - 840, 30, INK, 4);
+      wearCanvas(x, w, h, .35, 2);
+    });
+    add(new THREE.PlaneGeometry(1.0, .22), std({ map: stripTex, transparent: true, alphaTest: .3, roughness: .7 }), [.4, .5, TZ + TD / 2 + .062], [0, 0, -.02], { cast: false });
+
+    // ── on the table ──
+    const TOP = TH + .002;
+    // menu A-frame (left), cream card printed like the poster
+    const menuTex = tex(700, 1000, (x, w, h) => {
+      x.fillStyle = CREAM; x.fillRect(0, 0, w, h); x.fillStyle = INK; x.fillRect(24, 24, w - 48, 200); fit(x, 'SIP AND', 'Anton', 54, 46, w - 108, 66, CREAM, 2); fit(x, 'KILL', 'Anton', 54, 128, w - 108, 76, RED, 6);
+      fit(x, 'HALLOWEEN MENU', 'Oswald', 60, 250, w - 120, 36, INK, 4); x.fillRect(40, 310, w - 80, 6);
+      const items = ['STRAWBERRY MATCHA', 'TARO CLOUD', 'DIRTY MATCHA', 'BISCOFF SEA SALT'];
+      items.forEach((s, i) => { x.fillStyle = RED; star(x, 70, 382 + i * 110, 20); x.font = '52px Anton'; x.fillStyle = INK; x.fillText(s, 104, 400 + i * 110); x.fillRect(40, 430 + i * 110, w - 80, 2); });
+      x.lineWidth = 10; x.strokeStyle = INK; x.strokeRect(10, 10, w - 20, h - 20); wearCanvas(x, w, h, .15, 6);
+    });
+    { const g = new THREE.Group(); g.position.set(-.72, TOP, TZ + .05); g.rotation.y = .18; scene.add(g);
+      const board = new THREE.BoxGeometry(.3, .42, .012);
+      const wood = std({ color: 0x1b1716, roughness: .6 });
+      const front = add(board, [wood, wood, wood, wood, std({ map: menuTex, roughness: .8 }), wood], [0, .205, .07], [-.28, 0, 0], { parent: g });
+      add(board, wood, [0, .205, -.07], [.28, 0, 0], { parent: g }); }
+    // red straw cup
+    add(new THREE.CylinderGeometry(.06, .052, .17, 24), std({ color: RED, roughness: .35 }), [-.4, TOP + .085, TZ + .18]);
+    { const r = rng(2); for (let i = 0; i < 16; i++) add(new THREE.CylinderGeometry(.004, .004, .24, 6), std({ color: 0xf2efe6, roughness: .4 }), [-.4 + (r() - .5) * .07, TOP + .17, TZ + .18 + (r() - .5) * .07], [(r() - .5) * .25, 0, (r() - .5) * .25]); }
+    // drink display: riser + four iced drinks in clear cups (the real menu)
+    add(new RoundedBoxGeometry(.7, .06, .26, 3, .01), std({ color: 0x0f0e0e, roughness: .5 }), [.28, TOP + .03, TZ - .02]);
+    const drinks = [['#E6A3B2', '#5f8f3a'], ['#B9A3D9', '#ece6f2'], ['#5c3a22', '#6e9a46'], ['#c99a63', '#efe2cc']];
+    drinks.forEach(([top, bot], i) => { const x0 = .02 + i * .175, y0 = TOP + .06, z0 = TZ - .02;
+      add(new THREE.CylinderGeometry(.043, .035, .07, 24), std({ color: bot, roughness: .3 }), [x0, y0 + .035, z0], [0, 0, 0], { cast: false });
+      add(new THREE.CylinderGeometry(.0455, .043, .055, 24), std({ color: top, roughness: .3 }), [x0, y0 + .097, z0], [0, 0, 0], { cast: false });
+      add(new THREE.CylinderGeometry(.049, .037, .145, 28, 1, true), new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: .05, transparent: true, opacity: .28, clearcoat: 1, side: THREE.DoubleSide }), [x0, y0 + .073, z0], [0, 0, 0], { cast: false });
+      add(new THREE.SphereGeometry(.049, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: .05, transparent: true, opacity: .22 }), [x0, y0 + .145, z0], [0, 0, 0], { cast: false });
+      add(new THREE.CylinderGeometry(.005, .005, .26, 8), std({ color: RED, roughness: .4 }), [x0 + .012, y0 + .2, z0], [0, 0, .12]);
+      // cup sleeve: cream band with a red star
+      const sl = tex(256, 64, (x, w, h) => { x.fillStyle = CREAM; x.fillRect(0, 0, w, h); x.fillStyle = RED; star(x, w * .14, h / 2, 16); fit(x, 'SIP AND KILL', 'Anton', w * .26, 20, w * .66, 24, INK, 2); });
+      add(new THREE.CylinderGeometry(.047, .043, .04, 24, 1, true), std({ map: sl, roughness: .8 }), [x0, y0 + .06, z0], [0, Math.PI, 0], { cast: false });
+    });
+    // small pumpkins on the table, right
+    const pumpkin = (p, s, col = 0xd2561b) => { const g = new THREE.Group(); g.position.set(...p); g.scale.setScalar(s); scene.add(g);
+      for (let k = 0; k < 8; k++) { const m = add(new THREE.SphereGeometry(.06, 16, 12), std({ color: col, roughness: .55 }), [Math.cos(k * Math.PI / 4) * .035, .055, Math.sin(k * Math.PI / 4) * .035], [0, -k * Math.PI / 4, 0], { parent: g }); m.scale.set(.55, .85, 1); }
+      add(new THREE.CylinderGeometry(.008, .012, .04, 8), std({ color: 0x3d4a22, roughness: .8 }), [0, .12, 0], [0, 0, .2], { parent: g }); };
+    pumpkin([.82, TOP, TZ + .22], 1.15); pumpkin([.68, TOP, TZ + .3], .8, 0xe8e0cc);
+    // plush bear (tan, striped shirt like the mockup) sitting on the table
+    const plush = (p, rotY, s, c1, c2, panda = false) => { const g = new THREE.Group(); g.position.set(...p); g.rotation.y = rotY; g.scale.setScalar(s); scene.add(g);
+      const m1 = std({ color: c1, roughness: 1 }), m2 = std({ color: c2, roughness: 1 }), mE = std({ color: 0x0d0d0d, roughness: .3 });
+      add(new THREE.SphereGeometry(.075, 20, 16), panda ? m1 : m2, [0, .08, 0], [0, 0, 0], { parent: g }).scale.set(1, 1.05, .9);
+      add(new THREE.SphereGeometry(.068, 20, 16), m1, [0, .2, .005], [0, 0, 0], { parent: g });
+      for (const sx of [-1, 1]) { add(new THREE.SphereGeometry(.026, 12, 10), panda ? mE : m1, [sx * .052, .26, -.005], [0, 0, 0], { parent: g });
+        add(new THREE.SphereGeometry(.03, 12, 10), panda ? mE : m1, [sx * .085, .1, .02], [0, 0, 0], { parent: g }).scale.set(1, 1.5, 1);
+        add(new THREE.SphereGeometry(.034, 12, 10), panda ? mE : m1, [sx * .04, .025, .06], [0, 0, 0], { parent: g }).scale.set(1, .8, 1.3);
+        add(new THREE.SphereGeometry(panda ? .018 : .008, 10, 8), mE, [sx * .025, .215, .058], [0, 0, 0], { parent: g }).scale.set(1, panda ? 1.3 : 1, .5);
+        if (panda) add(new THREE.SphereGeometry(.0045, 8, 6), std({ color: 0xffffff }), [sx * .024, .218, .066], [0, 0, 0], { parent: g }); }
+      add(new THREE.SphereGeometry(.03, 12, 10), panda ? m1 : std({ color: 0xd8bf96, roughness: 1 }), [0, .19, .055], [0, 0, 0], { parent: g }).scale.set(1, .8, .7);
+      add(new THREE.SphereGeometry(.009, 8, 6), mE, [0, .197, .076], [0, 0, 0], { parent: g });
+      return g; };
+    plush([-.95, TOP, TZ + .3], .35, 1.2, 0xc9a26f, 0x6d8fb0); // keeps the mockup's striped-shirt bear (shirt muted)
+
+    // ── front-left rack: black powder-coat 2-tier, red LED strip, three glowing cones, panda + mushroom lamp ──
+    const RX = -.62, RZ = .32, RWd = .82, RD = .36, RHt = .62;
+    const rackMat = std({ color: 0x18171a, roughness: .45, metalness: .7 });
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) add(new THREE.BoxGeometry(.035, RHt, .035), rackMat, [RX + sx * RWd / 2, RHt / 2, RZ + sz * RD / 2]);
+    for (const y of [.12, RHt]) add(new THREE.BoxGeometry(RWd + .03, .022, RD + .03), rackMat, [RX, y, RZ]);
+    const led = add(new THREE.BoxGeometry(RWd - .06, .012, .012), new THREE.MeshBasicMaterial({ color: 0xff2a2a }), [RX, RHt - .03, RZ + RD / 2 + .01], [0, 0, 0], { cast: false });
+    const ledPt = new THREE.PointLight(0xff2020, 1.0, 1.6, 2); ledPt.position.set(RX, RHt - .06, RZ + RD / 2 + .05); scene.add(ledPt);
+    for (const k of [-1, 0, 1]) { const x0 = RX + k * .25;
+      add(new THREE.CylinderGeometry(.012, .07, .24, 24), std({ color: 0xff6a12, emissive: 0xff4a00, emissiveIntensity: .55, roughness: .5 }), [x0, .12 + .011 + .12, RZ], [0, 0, 0], { cast: false });
+      add(new THREE.BoxGeometry(.15, .012, .15), std({ color: 0xff6a12, emissive: 0xff4a00, emissiveIntensity: .6 }), [x0, .137, RZ]);
+      add(new THREE.CylinderGeometry(.04, .052, .03, 24), std({ color: 0xf2efe6, roughness: .6 }), [x0, .22, RZ], [0, 0, 0], { cast: false }); }
+    const coneGlow = new THREE.PointLight(0xff5a10, .9, 1.5, 2); coneGlow.position.set(RX, .32, RZ + .25); scene.add(coneGlow);
+    plush([RX + .2, RHt + .012, RZ], -.2, 1.25, 0xf4f1ea, 0x111111, true);
+    // red mushroom lamp
+    add(new THREE.CylinderGeometry(.012, .03, .2, 16), std({ color: RED, roughness: .3 }), [RX - .22, RHt + .11, RZ]);
+    add(new THREE.SphereGeometry(.085, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), std({ color: 0xc0141c, emissive: 0xff1010, emissiveIntensity: .35, roughness: .25 }), [RX - .22, RHt + .2, RZ]);
+    const lampPt = new THREE.PointLight(0xff3020, .7, 1.4, 2); lampPt.position.set(RX - .22, RHt + .17, RZ); scene.add(lampPt);
+
+    // ── three red camping lanterns hung from the truss, warm bulbs ──
+    const lanterns = [[-1.3, 1.82, 1.15], [0, 1.8, .55], [1.3, 1.82, 1.15]];
+    for (const [lx, ly, lz] of lanterns) {
+      const g = new THREE.Group(); g.position.set(lx, ly, lz); scene.add(g); const redM = std({ color: 0x9e1a1a, roughness: .4, metalness: .3 });
+      add(new THREE.CylinderGeometry(.06, .07, .05, 20), redM, [0, -.12, 0], [0, 0, 0], { parent: g });
+      add(new THREE.CylinderGeometry(.045, .045, .14, 20), std({ color: 0xffe2a8, emissive: 0xffb45a, emissiveIntensity: 3, roughness: .1 }), [0, -.025, 0], [0, 0, 0], { parent: g, cast: false });
+      add(new THREE.CylinderGeometry(.03, .065, .05, 20), redM, [0, .07, 0], [0, 0, 0], { parent: g });
+      add(new THREE.TorusGeometry(.04, .005, 6, 20, Math.PI), black, [0, .1, 0], [0, 0, 0], { parent: g });
+      add(new THREE.CylinderGeometry(.002, .002, EAVE - ly - .14, 4), black, [0, .14 + (EAVE - ly - .14) / 2, 0], [0, 0, 0], { parent: g, cast: false });
+      const pl = new THREE.PointLight(0xffb560, lx === 0 ? 3.2 : 2.4, 0, 2); pl.position.set(0, -.03, 0); g.add(pl);
+    }
+    // key light under the roof: warm spot over the counter, casts the main shadows
+    const key = new THREE.SpotLight(0xffc98a, 18, 0, .9, .7, 2); key.position.set(0, EAVE - .05, .9); key.target.position.set(0, .6, -.5); key.castShadow = true;
+    key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -.0004; key.shadow.radius = 4; scene.add(key, key.target);
+    // red uplights on the floor behind the table washing the banner
+    for (const sx of [-.95, .95]) { const u = new THREE.SpotLight(0xff1a1a, 9, 3.2, .75, .6, 2); u.position.set(sx, .08, -FW / 2 + .45); u.target.position.set(sx * .8, 1.6, -FW / 2); scene.add(u, u.target);
+      add(new THREE.CylinderGeometry(.05, .06, .09, 16), black, [sx, .045, -FW / 2 + .45]); }
+    // moonlight + sky fill
+    const moon = new THREE.DirectionalLight(0x8fa6c8, .8); moon.position.set(-6, 9, 5); moon.castShadow = true; moon.shadow.mapSize.set(2048, 2048);
+    Object.assign(moon.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5 }); scene.add(moon);
+    scene.add(new THREE.HemisphereLight(0x2a3346, 0x0f1a0c, .8));
+    // event floodlight from front-right (the lawn's area light), gives the white canopy its shape
+    const flood = new THREE.SpotLight(0xe8e4ff, 70, 0, .5, .8, 2); flood.position.set(4.5, 5.5, 7.5); flood.target.position.set(0, 1.2, 0); flood.castShadow = true;
+    flood.shadow.mapSize.set(2048, 2048); flood.shadow.bias = -.0003; scene.add(flood, flood.target);
+    // soft warm bounce off the white roof underside
+    const bounce = new THREE.PointLight(0xffd6a0, .9, 6, 2); bounce.position.set(0, EAVE + .1, 0); scene.add(bounce);
+
+    // ── olive trees in black pots, flanking the front legs ──
+    const tree = (px, pz, seed) => { const r = rng(seed), g = new THREE.Group(); g.position.set(px, 0, pz); scene.add(g);
+      add(new THREE.CylinderGeometry(.16, .12, .32, 28), std({ color: 0x141414, roughness: .55 }), [0, .16, 0], [0, 0, 0], { parent: g });
+      add(new THREE.CylinderGeometry(.15, .15, .01, 28), std({ color: 0x2b2018, roughness: 1 }), [0, .31, 0], [0, 0, 0], { parent: g });
+      const bark = std({ color: 0x5a4a3a, roughness: .9 });
+      const trunks = [[0, .3, 0, .05, 1.05, .05], [.02, .9, 0, -.25, .55, .2], [0, .9, 0, .3, .5, -.15], [0, 1.2, 0, .1, .4, .05]];
+      for (const [x0, y0, z0, dx, len, dz] of trunks) { const a = V(x0, y0, z0), b = V(x0 + dx, y0 + len, z0 + dz), d = new THREE.Vector3().subVectors(b, a);
+        const m = add(new THREE.CylinderGeometry(.012, .022, d.length(), 8), bark, [0, 0, 0], [0, 0, 0], { parent: g }); m.position.copy(a).add(b).multiplyScalar(.5); m.quaternion.setFromUnitVectors(V(0, 1, 0), d.clone().normalize()); }
+      const leafGeo = new THREE.SphereGeometry(.03, 6, 4); leafGeo.scale(.35, 1, .12);
+      const n = 900, im = new THREE.InstancedMesh(leafGeo, std({ color: 0x6d8a52, roughness: .8, side: THREE.DoubleSide }), n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), col = new THREE.Color();
+      const clusters = [[0, 1.35, 0, .28], [-.2, 1.25, .15, .2], [.25, 1.25, -.1, .22], [.05, 1.6, .03, .2], [-.1, 1.05, -.05, .16]];
+      for (let i = 0; i < n; i++) { const [cx, cy, cz, cr] = clusters[i % clusters.length], u = r() * 7, v = Math.acos(2 * r() - 1), rr = cr * Math.cbrt(r());
+        e.set(r() * 3, r() * 3, r() * 3); q.setFromEuler(e); m4.compose(V(cx + rr * Math.sin(v) * Math.cos(u), cy + rr * Math.cos(v) * .8, cz + rr * Math.sin(v) * Math.sin(u)), q, V(1, 1, 1).multiplyScalar(.8 + r() * .6));
+        im.setMatrixAt(i, m4); im.setColorAt(i, col.setHSL(.24 + r() * .05, .25 + r() * .15, .32 + r() * .18)); }
+      im.castShadow = true; im.receiveShadow = true; g.add(im); };
+    tree(-1.85, 1.45, 31); tree(1.85, 1.45, 32);
+
+    // ── cobwebs in the two front top corners ──
+    const webTex = tex(512, 512, (x, w, h) => { x.strokeStyle = 'rgba(235,230,220,.75)'; x.lineWidth = 1.6; for (let k = 0; k < 9; k++) { const a = k * Math.PI / 16; x.beginPath(); x.moveTo(0, 0); x.lineTo(Math.cos(a) * 520, Math.sin(a) * 520); x.stroke(); }
+      for (let ring = 1; ring < 9; ring++) { x.beginPath(); for (let k = 0; k < 9; k++) { const a = k * Math.PI / 16, rr = ring * 52 + Math.sin(k * 3 + ring) * 6; const px = Math.cos(a) * rr, py = Math.sin(a) * rr; if (k === 0) x.moveTo(px, py); else x.quadraticCurveTo(Math.cos(a - .1) * rr * .9, Math.sin(a - .1) * rr * .9, px, py); } x.stroke(); } });
+    for (const sx of [-1, 1]) add(new THREE.PlaneGeometry(.55, .55), new THREE.MeshBasicMaterial({ map: webTex, transparent: true, side: THREE.DoubleSide, depthWrite: false, opacity: .45 }), [sx * (FW / 2 - .26), EAVE - .3, FW / 2 + .005], [0, 0, sx < 0 ? -Math.PI / 2 : Math.PI], { cast: false, receive: false });
+
+    // ── render with bloom ──
+    const composer = new EffectComposer(renderer); composer.setPixelRatio(1); composer.setSize(RW, RH);
+    composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(RW, RH), .45, .5, .86));
+    composer.addPass(new OutputPass());
+    composer.render();
+
+    // ── film finish: grain + vignette (matches the poster's print grain) ──
+    const out = cv(RW, RH), o = out.getContext('2d'); o.drawImage(renderer.domElement, 0, 0);
+    const vg = o.createRadialGradient(RW / 2, RH * .55, RH * .35, RW / 2, RH * .55, RW * .72); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.55)'); o.fillStyle = vg; o.fillRect(0, 0, RW, RH);
+    const id = o.getImageData(0, 0, RW, RH), d = id.data, r = rng(3); for (let i = 0; i < d.length; i += 4) { const n = (r() + r() - 1) * 14; d[i] += n; d[i + 1] += n; d[i + 2] += n; } o.putImageData(id, 0, 0);
+    window.OUT.booth = out;
+    document.title = 'ready';
+  } catch (e) { console.log(e && e.stack || e); document.title = 'error ' + e; }
+})();
+</script></body></html>
