@@ -61,3 +61,9 @@ Files: `terownie-will-be-there-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. S
 - **Hero panel:** the event's own shocked costume-crowd art, with a speech bubble saying "IS THAT... TEROWNIE?!".
 - **Announcement:** the Terownie logo with "WILL BE THERE! · SIP AND KILL · HALLOWEEN POP-UP".
 - **Details:** the date and venue panels.
+
+## "Special guest" comic-cover version
+Files: `terownie-special-guest-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-cover.html`.
+- **Style:** a vintage horror comic-book cover with a "No. 30 / OCT" issue box, a sunset sky, a full moon with rays, and bats.
+- **Characters:** the event's pumpkin host asks "GUESS WHO'S POPPING UP?" A tilted guest card styled like the flyer's DJ cards carries the Terownie logo, "SIP AND KILL" and "HALLOWEEN POP-UP", with a "SPECIAL GUEST!" burst and "WILL BE THERE!" below. The costume crowd peeks up from the bottom, asking "IS THAT... TEROWNIE?!".
+- **Footer:** "Friday the 30th of October · Doors open at 3PM" and the Twin-Peaks Mountain venue box.
