@@ -122,12 +122,15 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     // antenna
     tv.strokeStyle = '#2A2224'; tv.lineWidth = 6; tv.lineCap = 'round';
     tv.beginPath(); tv.moveTo(TVX - 10, BY + 4); tv.lineTo(TVX - 150, BY - 150); tv.moveTo(TVX + 10, BY + 4); tv.lineTo(TVX + 120, BY - 165); tv.stroke();
+    tv.fillStyle = '#3A2F31'; for (const [x, y] of [[TVX - 150, BY - 150], [TVX + 120, BY - 165]]) { tv.beginPath(); tv.arc(x, y, 7, 0, 7); tv.fill(); }
+    tv.save(); tv.filter = 'blur(10px)'; tv.fillStyle = 'rgba(0,0,0,.6)'; tv.beginPath(); tv.ellipse(TVX, BY + BH + 36, 320, 18, 0, 0, 7); tv.fill(); tv.restore();
     tv.fillStyle = '#2A2224'; tv.beginPath(); tv.ellipse(TVX, BY + 6, 46, 20, 0, Math.PI, 0); tv.fill();
     // body: red cabinet with black inner bezel
     const rr = (x, y, w, h, r) => { tv.beginPath(); tv.roundRect(x, y, w, h, r); };
     tv.fillStyle = 'rgba(0,0,0,.5)'; rr(BX + 14, BY + 18, BW + 40, BH, 34); tv.fill();
     g = tv.createLinearGradient(0, BY, 0, BY + BH); g.addColorStop(0, '#E0333A'); g.addColorStop(1, '#9E151C'); tv.fillStyle = g; rr(BX, BY, BW + 40, BH, 34); tv.fill();
     tv.lineWidth = 5; tv.strokeStyle = '#1A1314'; tv.stroke();
+    g = tv.createLinearGradient(0, BY, 0, BY + BH * .5); g.addColorStop(0, 'rgba(255,220,200,.55)'); g.addColorStop(1, 'rgba(255,220,200,0)'); tv.strokeStyle = g; tv.lineWidth = 3; rr(BX + 6, BY + 6, BW + 28, BH - 12, 29); tv.stroke();
     tv.fillStyle = '#1A1314'; rr(BX + 22, BY + 22, BW - 110, BH - 44, 26); tv.fill();
     // side panel: dial + knobs + speaker
     const PX = BX + BW - 72;
@@ -147,6 +150,11 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     tv.fillStyle = 'rgba(0,0,0,.28)'; for (let y = SY; y < SY + SH; y += 4) tv.fillRect(SX, y, SW, 1.6);
     g = tv.createRadialGradient(SX + SW / 2, SY + SH / 2, SH * .2, SX + SW / 2, SY + SH / 2, SW * .7); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.6)'); tv.fillStyle = g; tv.fillRect(SX, SY, SW, SH);
     g = tv.createLinearGradient(SX, SY, SX + SW * .6, SY + SH * .6); g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(.5, 'rgba(255,255,255,0)'); tv.fillStyle = g; tv.fillRect(SX, SY, SW, SH);
+    // VHS on-screen display
+    tv.save(); tv.shadowColor = 'rgba(255,255,255,.7)'; tv.shadowBlur = 6;
+    text(tv, '▶ PLAY', 'MontB', 20, SX + 26, SY + 40, '#F4F0E6', { track: 2 });
+    text(tv, 'SP', 'MontB', 16, SX + SW - 26, SY + 38, '#F4F0E6', { align: 'right', track: 2 });
+    text(tv, 'OCT. 30', 'MontB', 18, SX + SW - 26, SY + SH - 22, '#F4F0E6', { align: 'right', track: 2 }); tv.restore();
     tv.restore();
     // legs
     tv.fillStyle = '#1A1314'; tv.fillRect(BX + 70, BY + BH, 22, 30); tv.fillRect(BX + BW - 50, BY + BH, 22, 30);
@@ -155,6 +163,7 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     // ── 04 type ──
     const ty = layer('04-type');
     text(ty, 'P U M P . B O Y Z   ×   E V P H O R I A   P R E S E N T', 'Mont', 17, W / 2, 70, CRM, { align: 'center', track: 2 });
+    fit(ty, 'WAKE THE DEAD', 'Play', 75, 100, 940, 160, '#8E141B', { track: 1 });
     fit(ty, 'WAKE THE DEAD', 'Play', 70, 96, 940, 160, CRM, { track: 1 });
     text(ty, 'H O U S E   P A R T Y   —   H A L L O W E E N   S P E C I A L', 'MontB', 22, W / 2, 305, '#EE3B42', { align: 'center', track: 3 });
     // corner stamp (red flyer)
@@ -162,9 +171,10 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     for (const [x, y] of [[110, 380], [140, 380], [170, 380]]) star(ty, x, y, 10, CRM);
     // Disco Devil lockup
     text(ty, 'A   H A L L O W E E N   P O P - U P   B Y', 'Mont', 24, W / 2, 935, CRM, { align: 'center', track: 2 });
-    { const lw = 290, lh = lw * logo.height / logo.width; ty.drawImage(logo, (W - lw) / 2, 958, lw, lh); }
+    { const lw = 290, lh = lw * logo.height / logo.width; const lg = ty.createRadialGradient(W / 2, 958 + lh / 2, 10, W / 2, 958 + lh / 2, 230); lg.addColorStop(0, 'rgba(211,36,44,.32)'); lg.addColorStop(1, 'rgba(211,36,44,0)'); ty.fillStyle = lg; ty.fillRect(W / 2 - 240, 958 + lh / 2 - 240, 480, 480); ty.drawImage(logo, (W - lw) / 2, 958, lw, lh); }
     // torn red strip
     ty.save(); ty.translate(W / 2, 1152); ty.rotate(-.015); tornPath(ty, -230, -34, 460, 68, 21); ty.fillStyle = '#A8121A'; ty.fill();
+    for (const [x, l, w] of [[-170, 22, 6], [-60, 34, 7], [95, 16, 5], [180, 28, 6]]) { ty.fillRect(x - w / 2, 26, w, l); ty.beginPath(); ty.arc(x, 26 + l, w * .8, 0, 7); ty.fill(); }
     fit(ty, 'SIP AND KILL', 'MontB', -150, -16, 300, 32, CRM, { track: 8 }); ty.restore();
     wear(ty, .12, 14);
 
@@ -198,9 +208,16 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
       sc.fillStyle = 'rgba(239,227,202,.3)'; for (let i = 0; i < 500; i++) { sc.beginPath(); sc.arc(r() * W, r() * H, r() * 1.3, 0, 7); sc.fill(); } }
 
     const fin = layer('poster'); fin.setTransform(1, 0, 0, 1, 0, 0);
-    for (const k of ['01-background', '02-dot-halo', '06-sparkles', '03-tv', '04-type', '05-info-bar']) fin.drawImage(OUT[k], 0, 0);
+    { const sg = layer('02b-screen-glow'); const v = sg.createRadialGradient(TVX - 40, TVY, 60, TVX - 40, TVY, 420); v.addColorStop(0, 'rgba(255,110,60,.4)'); v.addColorStop(1, 'rgba(255,110,60,0)'); sg.fillStyle = v; sg.fillRect(0, 0, W, H); }
+    fin.drawImage(OUT['01-background'], 0, 0); fin.globalCompositeOperation = 'screen'; fin.drawImage(OUT['02b-screen-glow'], 0, 0); fin.globalCompositeOperation = 'source-over';
+    for (const k of ['02-dot-halo', '06-sparkles', '03-tv', '04-type', '05-info-bar']) fin.drawImage(OUT[k], 0, 0);
     fin.globalCompositeOperation = 'overlay'; fin.globalAlpha = .5; fin.drawImage(OUT['07-grain'], 0, 0);
     fin.globalCompositeOperation = 'source-over'; fin.globalAlpha = 1; fin.drawImage(OUT['08-scratches'], 0, 0);
+    { const fx = layer('09-vignette-burn'); let v = fx.createRadialGradient(W / 2, H * .48, H * .38, W / 2, H * .48, H * .82); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)'); fx.fillStyle = v; fx.fillRect(0, 0, W, H);
+      fin.drawImage(fx.canvas, 0, 0);
+      const lb = layer('10-film-burn'); v = lb.createRadialGradient(0, 0, 0, 0, 0, 420); v.addColorStop(0, 'rgba(255,120,40,.45)'); v.addColorStop(1, 'rgba(255,120,40,0)'); lb.fillStyle = v; lb.fillRect(0, 0, W, H);
+      v = lb.createRadialGradient(W, H, 0, W, H, 380); v.addColorStop(0, 'rgba(230,40,40,.35)'); v.addColorStop(1, 'rgba(230,40,40,0)'); lb.fillStyle = v; lb.fillRect(0, 0, W, H);
+      fin.globalCompositeOperation = 'screen'; fin.drawImage(lb.canvas, 0, 0); fin.globalCompositeOperation = 'source-over'; }
     document.body.appendChild(OUT.poster);
     document.title = 'ready';
   } catch (e) { console.log(e && e.stack || e); document.title = 'error ' + e; }

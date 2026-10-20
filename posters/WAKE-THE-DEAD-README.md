@@ -79,3 +79,10 @@ Each element is borrowed from one of the reference posters:
 ### Halo colour versions
 `retro-tv-halo-colors/` has the same retro TV poster in seven halo colours: orange, gold, cream, purple, acid green, electric blue and hot pink. Only the halftone dot halo around the TV changes. `_compare.jpg` shows them side by side with the original red. To render another colour:
 `NODE_PATH=$(npm root -g) node posters/source/render.cjs posters/source/wake-the-dead-tv.html <outDir> 3 halo=F5921E`
+
+### Retro TV polish pass (red halo, layout unchanged)
+- **TV:** a warm glow from the screen, highlights along the cabinet edges, antenna tips, and a shadow under the TV.
+- **Screen:** a VHS overlay reading "▶ PLAY", "SP" and "OCT. 30".
+- **Title:** a faint red offset behind "WAKE THE DEAD".
+- **Logo and strip:** a soft red glow behind the logo and blood drips under the "SIP AND KILL" strip.
+- **Whole poster:** a stronger vignette and film burn in the top-left and bottom-right corners.
