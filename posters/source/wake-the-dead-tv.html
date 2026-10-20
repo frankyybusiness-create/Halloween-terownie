@@ -113,28 +113,29 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
       // fade the top edge into the background
       x.globalCompositeOperation = 'destination-in'; const fg = x.createLinearGradient(0, 0, 0, ph); fg.addColorStop(0, 'rgba(0,0,0,0)'); fg.addColorStop(.18, 'rgba(0,0,0,1)'); fg.addColorStop(.82, 'rgba(0,0,0,1)'); fg.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = fg; x.fillRect(0, 0, pw, ph);
       bg.globalAlpha = .62; bg.drawImage(c, cx, cy, cw, ch); bg.globalAlpha = 1; }
-    { // masked slasher peeking out from behind the TV's right edge, staring at the boy
+    let g = bg.createRadialGradient(540, 620, 60, 540, 620, 620); g.addColorStop(0, 'rgba(211,36,44,.38)'); g.addColorStop(1, 'rgba(211,36,44,0)'); bg.fillStyle = g; bg.fillRect(0, 0, W, H);
+    g = bg.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(20,16,17,.85)'); g.addColorStop(.25, 'rgba(20,16,17,.2)'); g.addColorStop(.75, 'rgba(20,16,17,.25)'); g.addColorStop(1, 'rgba(20,16,17,.9)'); bg.fillStyle = g; bg.fillRect(0, 0, W, H);
+    { // giant masked slasher looming from above, centred behind the TV
       const gs = cv(W * S, H * S), x = gs.getContext('2d'); x.setTransform(S, 0, 0, S, 0, 0);
-      x.translate(905, 575); x.rotate(.22);
+      x.translate(540, 432); x.scale(4.1, 4.1);
       // hood: black, with a thin red rim light
-      x.shadowColor = 'rgba(230,40,45,.9)'; x.shadowBlur = 16;
+      x.shadowColor = 'rgba(255,50,55,1)'; x.shadowBlur = 7;
       x.fillStyle = '#060304'; x.beginPath(); x.moveTo(-95, 170); x.bezierCurveTo(-120, 40, -95, -120, 0, -135); x.bezierCurveTo(95, -120, 120, 40, 95, 170); x.closePath(); x.fill();
       x.shadowBlur = 0;
       // pale mask: long face, drooping eyes, stretched screaming mouth
-      const mg = x.createLinearGradient(-40, -100, 40, 110); mg.addColorStop(0, '#E8DFCF'); mg.addColorStop(.6, '#B3A796'); mg.addColorStop(1, '#6E6358'); x.fillStyle = mg;
+      const mg = x.createLinearGradient(0, -102, 0, 60); mg.addColorStop(0, '#2E2220'); mg.addColorStop(.24, '#4A3B35'); mg.addColorStop(.37, '#DDD1BD'); mg.addColorStop(1, '#EFE5D3'); x.fillStyle = mg;
       x.beginPath(); x.moveTo(0, -102); x.bezierCurveTo(52, -100, 62, -30, 50, 20); x.bezierCurveTo(40, 70, 22, 112, 0, 116); x.bezierCurveTo(-22, 112, -40, 70, -50, 20); x.bezierCurveTo(-62, -30, -52, -100, 0, -102); x.fill();
       x.fillStyle = '#0B0607';
       for (const sx of [-1, 1]) { x.save(); x.translate(sx * 22, -32); x.rotate(sx * -.35); x.beginPath(); x.ellipse(0, 0, 13, 27, 0, 0, 7); x.fill(); x.restore(); }
       x.beginPath(); x.ellipse(0, 52, 13, 40, 0, 0, 7); x.fill();
       x.beginPath(); x.ellipse(-4, 0, 3, 5, 0, 0, 7); x.ellipse(4, 0, 3, 5, 0, 0, 7); x.fill();
       // red bounce from the TV on the mask's left side
-      x.globalCompositeOperation = 'source-atop'; const rg = x.createLinearGradient(-60, 0, 30, 0); rg.addColorStop(0, 'rgba(230,50,50,.45)'); rg.addColorStop(1, 'rgba(230,50,50,0)'); x.fillStyle = rg; x.fillRect(-140, -150, 280, 330);
+      x.globalCompositeOperation = 'source-atop'; const rg = x.createLinearGradient(0, -110, 0, 60); rg.addColorStop(0, 'rgba(60,10,12,.5)'); rg.addColorStop(1, 'rgba(230,50,50,.12)'); x.fillStyle = rg; x.fillRect(-140, -150, 280, 330);
       // grimy dot screen + darkening on the mask
-      x.fillStyle = 'rgba(20,8,8,.35)'; x.beginPath(); for (let yy = -110; yy < 120; yy += 5) for (let xx = -60; xx < 60; xx += 5) { x.moveTo(xx + 1.3, yy); x.arc(xx, yy, 1.3, 0, 7); } x.fill();
+      x.fillStyle = 'rgba(20,8,8,.22)'; x.beginPath(); for (let yy = -110; yy < 120; yy += 5) for (let xx = -60; xx < 60; xx += 5) { x.moveTo(xx + 1.3, yy); x.arc(xx, yy, 1.3, 0, 7); } x.fill();
       x.globalCompositeOperation = 'source-over'; x.setTransform(1, 0, 0, 1, 0, 0);
-      bg.globalAlpha = .92; bg.drawImage(gs, 0, 0, W, H); bg.globalAlpha = 1; }
-    let g = bg.createRadialGradient(540, 620, 60, 540, 620, 620); g.addColorStop(0, 'rgba(211,36,44,.38)'); g.addColorStop(1, 'rgba(211,36,44,0)'); bg.fillStyle = g; bg.fillRect(0, 0, W, H);
-    g = bg.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(20,16,17,.85)'); g.addColorStop(.25, 'rgba(20,16,17,.2)'); g.addColorStop(.75, 'rgba(20,16,17,.25)'); g.addColorStop(1, 'rgba(20,16,17,.9)'); bg.fillStyle = g; bg.fillRect(0, 0, W, H);
+      x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = 'destination-in'; const fd = x.createLinearGradient(0, 900 * S, 0, 1140 * S); fd.addColorStop(0, 'rgba(0,0,0,1)'); fd.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = fd; x.fillRect(0, 0, W * S, H * S);
+      OUT['02c-slasher'] = gs; }
     bg.fillStyle = 'rgba(0,0,0,.35)'; for (let y = 0; y < H; y += 6) for (let x = 0; x < W; x += 6) { bg.fillRect(x, y, 2.2, 2.2); }
 
     // ── 02 red dot halo behind the TV (Halloween Retro Party) ──
@@ -242,7 +243,7 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     const fin = layer('poster'); fin.setTransform(1, 0, 0, 1, 0, 0);
     { const sg = layer('02b-screen-glow'); const v = sg.createRadialGradient(TVX - 40, TVY, 60, TVX - 40, TVY, 420); v.addColorStop(0, 'rgba(255,110,60,.4)'); v.addColorStop(1, 'rgba(255,110,60,0)'); sg.fillStyle = v; sg.fillRect(0, 0, W, H); }
     fin.drawImage(OUT['01-background'], 0, 0); fin.globalCompositeOperation = 'screen'; fin.drawImage(OUT['02b-screen-glow'], 0, 0); fin.globalCompositeOperation = 'source-over';
-    for (const k of ['02-dot-halo', '06-sparkles', '03-tv', '04-type', '05-info-bar']) fin.drawImage(OUT[k], 0, 0);
+    for (const k of ['02c-slasher', '02-dot-halo', '06-sparkles', '03-tv', '04-type', '05-info-bar']) fin.drawImage(OUT[k], 0, 0);
     fin.globalCompositeOperation = 'overlay'; fin.globalAlpha = .5; fin.drawImage(OUT['07-grain'], 0, 0);
     fin.globalCompositeOperation = 'source-over'; fin.globalAlpha = 1; fin.drawImage(OUT['08-scratches'], 0, 0);
     // bats escaping the TV (Room & Rave)
