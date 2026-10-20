@@ -95,3 +95,9 @@ Each element is borrowed from one of the reference posters:
 - **"SIP AND KILL":** now set in Creepster, a drippy horror font, in cream with a dark blood shadow.
 - **Background crowd:** zoomed out so the characters are recognisable and peek around the TV, with a crisp red-and-black duotone and halftone dots instead of the blur, fading softly at the top and bottom.
 - **Masked slasher:** a giant hooded, Ghostface-style figure looms from above, centred behind the TV and bigger than the crowd. Its eyes stare out above the TV, its screaming mouth shows below it, and it has a red rim light and the halftone halo in front.
+
+## Retro TV poster: vintage print edition
+Files: `terownie-popup-retro-print-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-tv-retro.html`.
+- **Base:** the retro TV poster without Ghostface, with an identical layout.
+- **Retro finish:** a faded, warm vintage colour grade with lifted blacks and yellowed whites, faint ink misregistration, a worn cream print border, and paper grain.
+- **Border captions:** "NO. 30 — OCTOBER EDITION" and "@TEROWNIE_CAFE".
