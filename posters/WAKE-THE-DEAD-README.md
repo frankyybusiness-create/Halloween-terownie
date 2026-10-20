@@ -54,3 +54,10 @@ The panels are:
 - the four real menu drinks
 - the date (Friday the 30th of October, doors open at 3 PM)
 - the venue
+
+## "Terownie will be there" announcement (no booth, no drinks)
+Files: `terownie-will-be-there-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-announce.html`.
+- **Style:** the same as the event flyers.
+- **Hero panel:** the event's own shocked costume-crowd art, with a speech bubble saying "IS THAT... TEROWNIE?!".
+- **Announcement:** the Terownie logo with "WILL BE THERE! · SIP AND KILL · HALLOWEEN POP-UP".
+- **Details:** the date and venue panels.
