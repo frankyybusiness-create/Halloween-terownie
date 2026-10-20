@@ -3,7 +3,7 @@
 <style>html,body{margin:0;background:#222}canvas{width:540px}</style></head>
 <body>
 <script>
-// WAKE THE DEAD, Terownie announcement B: vintage horror comic-book cover. The event pumpkin host presents Terownie as special guest.
+// WAKE THE DEAD, Terownie announcement B: vintage horror comic-book cover. Announces the Terownie pop-up at the event.
 // Inspiration: Death by Disco (one-ink newspaper grid, justified condensed type, star bullets, huge number),
 // the retro Halloween grid (monochrome crowd photos, red-on-black CRT, cut-paper + photocopy grit),
 // Disco Devil (halftone photos, torn strips carrying the facts).
@@ -132,7 +132,7 @@ function bubble(ctx, cx, cy, rx, ry, tx, ty) { ctx.fillStyle = '#FFF8E8'; ctx.st
     bubble(hr, 250, 330, 165, 70, 330, 420);
     fit(hr, 'GUESS WHO’S', 'Bang', 140, 290, 220, 30, INK, { track: 1 }); fit(hr, 'POPPING UP?', 'Bang', 128, 328, 244, 34, '#C8231B', { track: 1 });
 
-    // ── 03 special guest card (styled like the event's DJ cards) ──
+    // ── 03 pop-up card (styled like the event's DJ cards) ──
     const cd = layer('03-guest-card');
     { cd.save(); cd.translate(800, 650); cd.rotate(.09); const cw = 330, ch = 420;
       cd.fillStyle = 'rgba(0,0,0,.35)'; cd.fillRect(-cw / 2 + 12, -ch / 2 + 14, cw, ch);
@@ -145,7 +145,7 @@ function bubble(ctx, cx, cy, rx, ry, tx, ty) { ctx.fillStyle = '#FFF8E8'; ctx.st
       fit(cd, 'HALLOWEEN POP-UP', 'Bang', -cw / 2 + 70, ch / 2 - 38, cw - 140, 18, '#C8231B', { track: 2 });
       cd.restore(); }
     burst(cd, 905, 420, 135, 82, 14, YEL, 7);
-    cd.save(); cd.translate(905, 420); cd.rotate(.12); fit(cd, 'SPECIAL', 'Bang', -70, -34, 140, 30, INK, { track: 2 }); fit(cd, 'GUEST!', 'Bang', -64, 4, 128, 32, '#C8231B', { track: 2 }); cd.restore();
+    cd.save(); cd.translate(905, 420); cd.rotate(.12); fit(cd, 'POP-UP', 'Bang', -62, -34, 124, 30, INK, { track: 2 }); fit(cd, 'ALERT!', 'Bang', -64, 4, 128, 32, '#C8231B', { track: 2 }); cd.restore();
     fitInk(cd, 'WILL BE THERE!', 'Creep', 590, 880, 420, 58, YEL, { track: 2, line: 4, shadow: 6 });
 
     // ── 04 crowd panel at the bottom: the event's shocked costume crowd looking up ──
