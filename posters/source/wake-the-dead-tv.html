@@ -150,6 +150,10 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     tv.fillStyle = 'rgba(0,0,0,.28)'; for (let y = SY; y < SY + SH; y += 4) tv.fillRect(SX, y, SW, 1.6);
     g = tv.createRadialGradient(SX + SW / 2, SY + SH / 2, SH * .2, SX + SW / 2, SY + SH / 2, SW * .7); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.6)'); tv.fillStyle = g; tv.fillRect(SX, SY, SW, SH);
     g = tv.createLinearGradient(SX, SY, SX + SW * .6, SY + SH * .6); g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(.5, 'rgba(255,255,255,0)'); tv.fillStyle = g; tv.fillRect(SX, SY, SW, SH);
+    // VHS tracking glitch (Hallowia): noisy band + bright line
+    { const r = rng(55), gy = SY + SH * .9; tv.fillStyle = 'rgba(255,255,255,.10)'; tv.fillRect(SX, gy, SW, 14);
+      for (let i = 0; i < 260; i++) { tv.fillStyle = `rgba(255,255,255,${.15 + r() * .4})`; tv.fillRect(SX + r() * SW, gy + r() * 14, 2 + r() * 10, 1); }
+      tv.fillStyle = 'rgba(255,80,80,.35)'; tv.fillRect(SX, gy - 2, SW, 1.5); tv.fillStyle = 'rgba(80,200,255,.3)'; tv.fillRect(SX, gy + 15, SW, 1.5); }
     // VHS on-screen display
     tv.save(); tv.shadowColor = 'rgba(255,255,255,.7)'; tv.shadowBlur = 6;
     text(tv, '▶ PLAY', 'MontB', 20, SX + 26, SY + 40, '#F4F0E6', { track: 2 });
@@ -213,6 +217,26 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     for (const k of ['02-dot-halo', '06-sparkles', '03-tv', '04-type', '05-info-bar']) fin.drawImage(OUT[k], 0, 0);
     fin.globalCompositeOperation = 'overlay'; fin.globalAlpha = .5; fin.drawImage(OUT['07-grain'], 0, 0);
     fin.globalCompositeOperation = 'source-over'; fin.globalAlpha = 1; fin.drawImage(OUT['08-scratches'], 0, 0);
+    // bats escaping the TV (Room & Rave)
+    { const bt = layer('08b-bats'); bt.fillStyle = '#0D0809';
+      const bat = (x, y, sc, rot) => { bt.save(); bt.translate(x, y); bt.rotate(rot); bt.scale(sc, sc); bt.beginPath(); bt.moveTo(0, 0); bt.quadraticCurveTo(-30, -30, -80, -10); bt.quadraticCurveTo(-60, 0, -55, 18); bt.quadraticCurveTo(-35, 5, -20, 20); bt.quadraticCurveTo(-8, 8, 0, 18); bt.quadraticCurveTo(8, 8, 20, 20); bt.quadraticCurveTo(35, 5, 55, 18); bt.quadraticCurveTo(60, 0, 80, -10); bt.quadraticCurveTo(30, -30, 0, 0); bt.fill(); bt.beginPath(); bt.arc(0, 2, 9, 0, 7); bt.fill(); bt.restore(); };
+      bt.shadowColor = 'rgba(255,70,60,.55)'; bt.shadowBlur = 10;
+      for (const [x, y, sc, rot] of [[690, 420, .8, -.2], [790, 372, .62, .15], [255, 410, .55, .2], [880, 560, .5, -.12], [190, 520, .42, -.15], [430, 392, .38, .1]]) bat(x, y, sc, rot);
+      fin.drawImage(bt.canvas, 0, 0); }
+    // corner stamps with the event's real house rules (red flyer)
+    { const cs = layer('08c-corner-stamps');
+      text(cs, 'COSTUME IS A MUST', 'MontB', 13, 62, 1330, CRM, { track: 3 });
+      text(cs, 'STRICTLY NO MINORS', 'MontB', 13, W - 62, 1330, CRM, { track: 3, align: 'right' });
+      wear(cs, .15, 61); fin.drawImage(cs.canvas, 0, 0); }
+    // creased paper + plastic-wrap sheen (Room & Rave / Reloaded)
+    { const cz = layer('08d-creases'); const r = rng(77);
+      const crease = (x0, y0, x1, y1) => { cz.strokeStyle = 'rgba(255,240,220,.16)'; cz.lineWidth = 1.6; cz.beginPath(); cz.moveTo(x0, y0); cz.lineTo(x1, y1); cz.stroke();
+        cz.strokeStyle = 'rgba(0,0,0,.35)'; cz.lineWidth = 2.2; cz.beginPath(); cz.moveTo(x0 + 2, y0 + 2); cz.lineTo(x1 + 2, y1 + 2); cz.stroke(); };
+      crease(0, H * .5 + 4, W, H * .5 - 6); crease(W * .5 + 3, 0, W * .5 - 5, H); crease(0, 180, 260, 0); crease(W - 300, H, W, H - 220);
+      for (let i = 0; i < 7; i++) { const x = r() * W, y = r() * H, len = 160 + r() * 340, a = -.6 + r() * .3; const gg = cz.createLinearGradient(x, y, x + Math.cos(a) * len, y + Math.sin(a) * len);
+        gg.addColorStop(0, 'rgba(255,255,255,0)'); gg.addColorStop(.5, `rgba(255,255,255,${.05 + r() * .06})`); gg.addColorStop(1, 'rgba(255,255,255,0)'); cz.strokeStyle = gg; cz.lineWidth = 6 + r() * 18; cz.lineCap = 'round';
+        cz.beginPath(); cz.moveTo(x, y); cz.quadraticCurveTo(x + Math.cos(a) * len * .5 + 30, y + Math.sin(a) * len * .5 - 20, x + Math.cos(a) * len, y + Math.sin(a) * len); cz.stroke(); }
+      fin.drawImage(cz.canvas, 0, 0); }
     { const fx = layer('09-vignette-burn'); let v = fx.createRadialGradient(W / 2, H * .48, H * .38, W / 2, H * .48, H * .82); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.55)'); fx.fillStyle = v; fx.fillRect(0, 0, W, H);
       fin.drawImage(fx.canvas, 0, 0);
       const lb = layer('10-film-burn'); v = lb.createRadialGradient(0, 0, 0, 0, 0, 420); v.addColorStop(0, 'rgba(255,120,40,.45)'); v.addColorStop(1, 'rgba(255,120,40,0)'); lb.fillStyle = v; lb.fillRect(0, 0, W, H);

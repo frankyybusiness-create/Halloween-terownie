@@ -86,3 +86,9 @@ Each element is borrowed from one of the reference posters:
 - **Title:** a faint red offset behind "WAKE THE DEAD".
 - **Logo and strip:** a soft red glow behind the logo and blood drips under the "SIP AND KILL" strip.
 - **Whole poster:** a stronger vignette and film burn in the top-left and bottom-right corners.
+
+### Retro TV: details from the second reference set
+- **Room & Rave:** bats flying out of the TV, plus creased-paper fold lines.
+- **Hallowia:** a VHS tracking-glitch band at the bottom of the screen.
+- **Reloaded:** a faint plastic-wrap sheen.
+- **Red Halloween Party flyer:** corner stamps with the event's real house rules, "COSTUME IS A MUST" and "STRICTLY NO MINORS".
