@@ -92,3 +92,4 @@ Each element is borrowed from one of the reference posters:
 - **Hallowia:** a VHS tracking-glitch band at the bottom of the screen.
 - **Reloaded:** a faint plastic-wrap sheen.
 - **Red Halloween Party flyer:** corner stamps with the event's real house rules, "COSTUME IS A MUST" and "STRICTLY NO MINORS".
+- **"SIP AND KILL":** now set in Creepster, a drippy horror font, in cream with a dark blood shadow.

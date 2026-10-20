@@ -90,7 +90,7 @@ function sparkle(ctx, x, y, r, color) { star(ctx, x, y, r, color, .16, 4); }
 const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
 (async () => {
   try {
-    for (const [fam, file] of [['Play', 'playfair-display/files/playfair-display-latin-500-normal.woff2'], ['Mont', 'montserrat/files/montserrat-latin-500-normal.woff2'], ['MontB', 'montserrat/files/montserrat-latin-700-normal.woff2'], ['Anton', 'anton/files/anton-latin-400-normal.woff2'], ['Oswald', 'oswald/files/oswald-latin-600-normal.woff2']]) {
+    for (const [fam, file] of [['Play', 'playfair-display/files/playfair-display-latin-500-normal.woff2'], ['Mont', 'montserrat/files/montserrat-latin-500-normal.woff2'], ['MontB', 'montserrat/files/montserrat-latin-700-normal.woff2'], ['Creep', 'creepster/files/creepster-latin-400-normal.woff2'], ['Anton', 'anton/files/anton-latin-400-normal.woff2'], ['Oswald', 'oswald/files/oswald-latin-600-normal.woff2']]) {
       const f = new FontFace(fam, `url(${ROOT}node_modules/@fontsource/${file})`); await f.load(); document.fonts.add(f);
     }
     const host = await load(ROOT + 'public/event/pumpkin-host.png');
@@ -179,7 +179,7 @@ const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C', ORNG = '#F5921E';
     // torn red strip
     ty.save(); ty.translate(W / 2, 1152); ty.rotate(-.015); tornPath(ty, -230, -34, 460, 68, 21); ty.fillStyle = '#A8121A'; ty.fill();
     for (const [x, l, w] of [[-170, 22, 6], [-60, 34, 7], [95, 16, 5], [180, 28, 6]]) { ty.fillRect(x - w / 2, 26, w, l); ty.beginPath(); ty.arc(x, 26 + l, w * .8, 0, 7); ty.fill(); }
-    fit(ty, 'SIP AND KILL', 'MontB', -150, -16, 300, 32, CRM, { track: 8 }); ty.restore();
+    fit(ty, 'SIP AND KILL', 'Creep', -183, -18, 372, 38, '#3A0508', { track: 4 }); fit(ty, 'SIP AND KILL', 'Creep', -186, -21, 372, 38, CRM, { track: 4 }); ty.restore();
     wear(ty, .12, 14);
 
     // ── 05 info bar with dividers + hand-drawn circle (Retro Party + red flyer) ──
