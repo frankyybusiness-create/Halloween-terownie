@@ -105,3 +105,9 @@ Files: `terownie-popup-retro-print-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png
 Files: `terownie-popup-retro-tv-white-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-tv-white.html`.
 - **Design:** the same as the red no-Ghostface version.
 - **Colours:** bone-white misty paper, a ghostly grey crowd, black type, the black Terownie logo (recoloured only) and blood-red accents. The red TV and the full-colour pumpkin host stay as they are.
+
+## Slide 2: caption poster with QR code
+Files: `terownie-popup-slide2-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-slide2.html`.
+- **Style:** the same red retro style as the retro TV poster, made to sit beside it as slide 2 of the post.
+- **Text:** the post caption laid out as a poster: the intro line, the Terownie logo, the SIP AND KILL strip, "Come find us!", "Reserve your slot now!", "Dress to impress…", and the date, time and venue bar.
+- **QR code:** links to the registration form (`public/brand/register-qr.png`). It was checked with a QR decoder and scans correctly.

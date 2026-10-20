@@ -1,0 +1,185 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#222}canvas{width:540px}</style></head>
+<body>
+<script>
+// Terownie post, slide 2: the caption as a poster (red retro TV style) with a registration QR code.
+// Inspiration: Death by Disco (one-ink newspaper grid, justified condensed type, star bullets, huge number),
+// the retro Halloween grid (monochrome crowd photos, red-on-black CRT, cut-paper + photocopy grit),
+// Disco Devil (halftone photos, torn strips carrying the facts).
+// Event facts come from the PUMP.BOYZ × EVPHORIA flyers only.
+const W = 1080, H = 1350, S = +(new URLSearchParams(location.search).get('s') || 1);
+const ROOT = '../../';
+const PAPER = '#E6D9BD', RED = '#B3141C', CRIM = '#6B0910', INK = '#130E0E';
+const OUT = window.OUT = {};
+
+function rng(s) { return () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const load = (u) => new Promise((r, j) => { const i = new Image(); i.onload = () => r(i); i.onerror = () => j(u); i.src = u; });
+function cv(w, h) { const c = document.createElement('canvas'); c.width = Math.ceil(w); c.height = Math.ceil(h); return c; }
+/** a full-poster layer in poster units (1080x1350), backed at S x resolution */
+function layer(name) { const c = cv(W * S, H * S); OUT[name] = c; const x = c.getContext('2d'); x.setTransform(S, 0, 0, S, 0, 0); return x; }
+function noise(w, h, cell, seed) {
+  const n = cv(w / cell + 2, h / cell + 2), nc = n.getContext('2d'), id = nc.createImageData(n.width, n.height), r = rng(seed);
+  for (let i = 0; i < id.data.length; i += 4) { id.data[i] = id.data[i + 1] = id.data[i + 2] = r() * 255; id.data[i + 3] = 255; }
+  nc.putImageData(id, 0, 0); const o = cv(w, h), oc = o.getContext('2d'); oc.imageSmoothingQuality = 'high'; oc.drawImage(n, 0, 0, w, h);
+  return oc.getImageData(0, 0, o.width, o.height).data;
+}
+
+/** One-ink halftone of a crop of `img` into a w x h box (poster units). Dark source -> big dots unless invert=false. */
+function halftone(img, crop, w, h, { color = INK, spacing = 5, lo = .1, hi = .9, gamma = 1, invert = true, angle = 45, seed = 1, gain = 1 } = {}) {
+  const pw = Math.round(w * S), ph = Math.round(h * S), sp = spacing * S;
+  const s = cv(pw, ph), c = s.getContext('2d'); const [sx, sy, sw, sh] = crop || [0, 0, img.width, img.height];
+  c.filter = `blur(${.6 * S}px)`; c.drawImage(img, sx, sy, sw, sh, 0, 0, pw, ph); c.filter = 'none';
+  const d = c.getImageData(0, 0, pw, ph).data, nd = noise(pw, ph, 30 * S, seed), gr = rng(seed + 3);
+  const out = cv(pw, ph), oc = out.getContext('2d'); oc.fillStyle = color; oc.beginPath();
+  const t = angle * Math.PI / 180, R = Math.hypot(pw, ph);
+  for (let gy = -R; gy < R; gy += sp) for (let gx = -R; gx < R; gx += sp) {
+    const px = pw / 2 + gx * Math.cos(t) - gy * Math.sin(t), py = ph / 2 + gx * Math.sin(t) + gy * Math.cos(t);
+    if (px < 0 || py < 0 || px >= pw || py >= ph) continue;
+    const k = ((py | 0) * pw + (px | 0)) * 4, a = d[k + 3] / 255; if (a < .05) continue;
+    let l = (.299 * d[k] + .587 * d[k + 1] + .114 * d[k + 2]) / 255;
+    l = Math.min(1, Math.max(0, (l - lo) / (hi - lo))) ** gamma; if (invert) l = 1 - l;
+    l *= (.82 + .36 * nd[k] / 255) * (.9 + gr() * .2);
+    const r = sp * .7 * Math.min(1.05, Math.sqrt(l) * gain) * a; if (r < .35 * S) continue;
+    oc.moveTo(px + r, py); oc.arc(px, py, r, 0, 7);
+  }
+  oc.fill(); return out;
+}
+
+/** Screen-print wear: knock specks and patchy under-inked areas out of a layer. */
+function wear(ctx, amount, seed) {
+  const c = ctx.canvas, w = c.width, h = c.height, n = noise(w, h, 1.6 * S, seed), b = noise(w, h, 70 * S, seed + 1), id = ctx.getImageData(0, 0, w, h), d = id.data;
+  for (let i = 0; i < d.length; i += 4) { const v = n[i] / 255, big = b[i] / 255; if (v > 1 - amount * .3 - Math.max(0, big - .62) * amount * 1.6) d[i + 3] *= .08; }
+  ctx.putImageData(id, 0, 0);
+}
+/** Rough the edge of a fill: jittered polygon rect */
+function roughRect(ctx, x, y, w, h, j, seed) {
+  const r = rng(seed); ctx.beginPath(); ctx.moveTo(x + r() * j, y + r() * j);
+  for (let t = 0; t <= w; t += 9) ctx.lineTo(x + t, y + (r() - .5) * j);
+  for (let t = 0; t <= h; t += 9) ctx.lineTo(x + w + (r() - .5) * j, y + t);
+  for (let t = w; t >= 0; t -= 9) ctx.lineTo(x + t, y + h + (r() - .5) * j);
+  for (let t = h; t >= 0; t -= 9) ctx.lineTo(x + (r() - .5) * j, y + t);
+  ctx.closePath();
+}
+/** Torn paper strip path (Disco Devil facts strips) */
+function tornPath(ctx, x, y, w, h, seed) {
+  const r = rng(seed); ctx.beginPath(); ctx.moveTo(x, y + r() * 6);
+  for (let t = 0; t <= w; t += 7) ctx.lineTo(x + t, y + r() * 9 - 2);
+  ctx.lineTo(x + w + r() * 6, y + h * .5);
+  for (let t = w; t >= 0; t -= 7) ctx.lineTo(x + t, y + h - r() * 9 + 2);
+  ctx.lineTo(x - r() * 6, y + h * .5); ctx.closePath();
+}
+
+/** Draw `text` so its cap height spans y..y+h and its width is exactly w (condensed type that fills its box). */
+function fit(ctx, text, family, x, y, w, h, color, { track = 0 } = {}) {
+  ctx.save(); ctx.font = `200px ${family}`; ctx.letterSpacing = track + 'px';
+  const m = ctx.measureText(text), cap = m.actualBoundingBoxAscent, tw = m.actualBoundingBoxRight + m.actualBoundingBoxLeft;
+  ctx.translate(x, y + h); ctx.scale(w / tw, h / cap); ctx.fillStyle = color; ctx.fillText(text, m.actualBoundingBoxLeft, 0); ctx.restore();
+}
+/** Plain text, natural proportions, optional horizontal squeeze */
+function text(ctx, s, family, size, x, y, color, { align = 'left', track = 0, sx = 1, base = 'alphabetic' } = {}) {
+  ctx.save(); ctx.font = `${size}px ${family}`; ctx.letterSpacing = track + 'px'; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillStyle = color;
+  ctx.translate(x, y); ctx.scale(sx, 1); ctx.fillText(s, 0, 0); ctx.restore();
+}
+function star(ctx, x, y, r, color, inner = .42, pts = 5) {
+  ctx.beginPath(); for (let i = 0; i < pts * 2; i++) { const a = -Math.PI / 2 + i * Math.PI / pts, rr = i % 2 ? r * inner : r; ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+  ctx.closePath(); ctx.fillStyle = color; ctx.fill();
+}
+function sparkle(ctx, x, y, r, color) { star(ctx, x, y, r, color, .16, 4); }
+
+const BG = '#141011', CRM = '#EFE3CA', RD = '#D3242C';
+(async () => {
+  try {
+    for (const [fam, file] of [['Play', 'playfair-display/files/playfair-display-latin-500-normal.woff2'], ['PlayI', 'playfair-display/files/playfair-display-latin-500-italic.woff2'], ['Mont', 'montserrat/files/montserrat-latin-500-normal.woff2'], ['MontB', 'montserrat/files/montserrat-latin-700-normal.woff2'], ['Creep', 'creepster/files/creepster-latin-400-normal.woff2'], ['Anton', 'anton/files/anton-latin-400-normal.woff2']]) {
+      const f = new FontFace(fam, `url(${ROOT}node_modules/@fontsource/${file})`); await f.load(); document.fonts.add(f);
+    }
+    const crowd = await load(ROOT + 'public/event/costume-crowd.png');
+    const logo = await load(ROOT + 'public/brand/terownie-logo-cream.png');
+    const qr = await load(ROOT + 'public/brand/register-qr.png');
+
+    // ── background: identical treatment to slide 1 (charcoal, red duotone crowd, red glow, dot grid) ──
+    const bg = layer('01-background');
+    bg.fillStyle = BG; bg.fillRect(0, 0, W, H);
+    { const cw = 1240, ch = cw * crowd.height / crowd.width, cx = (W - cw) / 2, cy = 470;
+      const pw = Math.round(cw * S), ph = Math.round(ch * S), c = cv(pw, ph), x = c.getContext('2d');
+      x.drawImage(crowd, 0, 0, pw, ph); const id = x.getImageData(0, 0, pw, ph), d = id.data, A = [22, 6, 8], B = [196, 52, 58];
+      for (let i = 0; i < d.length; i += 4) { let l = (.299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2]) / 255; l = Math.min(1, Math.max(0, (l - .5) * 1.5 + .5)) ** 1.15; for (let k = 0; k < 3; k++) d[i + k] = A[k] + (B[k] - A[k]) * l; }
+      x.putImageData(id, 0, 0);
+      x.globalCompositeOperation = 'destination-in'; const fg = x.createLinearGradient(0, 0, 0, ph); fg.addColorStop(0, 'rgba(0,0,0,0)'); fg.addColorStop(.2, 'rgba(0,0,0,1)'); fg.addColorStop(.85, 'rgba(0,0,0,1)'); fg.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = fg; x.fillRect(0, 0, pw, ph);
+      bg.globalAlpha = .4; bg.drawImage(c, cx, cy, cw, ch); bg.globalAlpha = 1; }
+    let g = bg.createRadialGradient(540, 640, 60, 540, 640, 640); g.addColorStop(0, 'rgba(211,36,44,.3)'); g.addColorStop(1, 'rgba(211,36,44,0)'); bg.fillStyle = g; bg.fillRect(0, 0, W, H);
+    g = bg.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(20,16,17,.85)'); g.addColorStop(.25, 'rgba(20,16,17,.3)'); g.addColorStop(.75, 'rgba(20,16,17,.35)'); g.addColorStop(1, 'rgba(20,16,17,.9)'); bg.fillStyle = g; bg.fillRect(0, 0, W, H);
+    bg.fillStyle = 'rgba(0,0,0,.35)'; for (let y = 0; y < H; y += 6) for (let x = 0; x < W; x += 6) bg.fillRect(x, y, 2.2, 2.2);
+
+    // ── type ──
+    const ty = layer('02-type');
+    text(ty, 'P U M P . B O Y Z   ×   E V P H O R I A', 'Mont', 17, W / 2, 70, CRM, { align: 'center', track: 2 });
+    fit(ty, 'HALLOWEEN', 'Play', 157, 102, 776, 112, '#8E141B', { track: 2 }); fit(ty, 'HALLOWEEN', 'Play', 152, 98, 776, 112, CRM, { track: 2 });
+    text(ty, 'H O U S E   P A R T Y', 'MontB', 26, W / 2, 262, '#EE3B42', { align: 'center', track: 3 });
+    // intro line (caption opener), italic serif
+    const intro = ['Get ready for a Halloween house party filled with', 'killer beats, wild costumes, and something', 'to sip on all night long!'];
+    intro.forEach((l, i) => text(ty, l, 'PlayI', 31, W / 2, 335 + i * 42, CRM, { align: 'center' }));
+    // logo lockup + SIP AND KILL strip
+    text(ty, 'A   H A L L O W E E N   P O P - U P   B Y', 'Mont', 20, W / 2, 500, CRM, { align: 'center', track: 2 });
+    { const lw = 240, lh = lw * logo.height / logo.width, ly = 518; const lg = ty.createRadialGradient(W / 2, ly + lh / 2, 10, W / 2, ly + lh / 2, 200); lg.addColorStop(0, 'rgba(211,36,44,.32)'); lg.addColorStop(1, 'rgba(211,36,44,0)'); ty.fillStyle = lg; ty.fillRect(W / 2 - 220, ly + lh / 2 - 220, 440, 440); ty.drawImage(logo, (W - lw) / 2, ly, lw, lh); }
+    ty.save(); ty.translate(W / 2, 690); ty.rotate(-.015); tornPath(ty, -210, -31, 420, 62, 21); ty.fillStyle = '#A8121A'; ty.fill();
+    for (const [x, l, w] of [[-150, 20, 6], [-50, 30, 7], [85, 15, 5], [165, 25, 6]]) { ty.fillRect(x - w / 2, 24, w, l); ty.beginPath(); ty.arc(x, 24 + l, w * .8, 0, 7); ty.fill(); }
+    fit(ty, 'SIP AND KILL', 'Creep', -167, -16, 340, 34, '#3A0508', { track: 4 }); fit(ty, 'SIP AND KILL', 'Creep', -170, -19, 340, 34, CRM, { track: 4 }); ty.restore();
+    text(ty, 'Terownie is popping up with our SIP AND KILL booth.', 'Mont', 23, W / 2, 790, CRM, { align: 'center' });
+    text(ty, 'COME FIND US!', 'MontB', 24, W / 2, 826, '#EE3B42', { align: 'center', track: 4 });
+    wear(ty, .1, 14);
+
+    // ── register block: QR card (left) + call to action (right) ──
+    const rg = layer('03-register');
+    const QX = 96, QY = 870, QS = 250;
+    rg.save(); rg.translate(QX + QS / 2, QY + QS / 2); rg.rotate(-.03);
+    rg.fillStyle = 'rgba(0,0,0,.5)'; rg.fillRect(-QS / 2 + 8, -QS / 2 + 10, QS, QS + 40);
+    rg.fillStyle = CRM; rg.fillRect(-QS / 2, -QS / 2, QS, QS + 40); rg.drawImage(qr, -QS / 2 + 14, -QS / 2 + 14, QS - 28, QS - 28);
+    fit(rg, 'SCAN TO REGISTER', 'MontB', -QS / 2 + 26, QS / 2 + 8, QS - 52, 16, '#A8121A', { track: 2 }); rg.restore();
+    const RX = 410;
+    fit(rg, 'RESERVE YOUR', 'Anton', RX, 896, 560, 62, CRM, { track: 2 });
+    fit(rg, 'SLOT NOW!', 'Anton', RX, 970, 400, 62, RD, { track: 3 });
+    text(rg, 'Dress to impress, bring the energy,', 'PlayI', 27, RX, 1084, CRM);
+    text(rg, 'and come say hi!', 'PlayI', 27, RX, 1120, CRM);
+    rg.save(); rg.strokeStyle = RD; rg.lineWidth = 3; rg.lineCap = 'round'; rg.beginPath(); rg.moveTo(RX + 2, 1138); rg.quadraticCurveTo(RX + 120, 1146, RX + 210, 1136); rg.stroke(); rg.restore();
+
+    // ── info bar (same as slide 1) ──
+    const ib = layer('04-info-bar'); const IY = 1212;
+    ib.fillStyle = 'rgba(239,227,202,.55)'; ib.fillRect(60, IY - 14, W - 120, 2);
+    fit(ib, '30', 'Anton', 76, IY + 6, 74, 74, RD);
+    text(ib, 'OCTOBER', 'MontB', 17, 162, IY + 36, CRM, { track: 2 }); text(ib, 'FRIDAY', 'MontB', 17, 162, IY + 60, CRM, { track: 2 });
+    ib.fillStyle = CRM; ib.fillRect(292, IY + 4, 3, 80);
+    text(ib, 'DOORS OPEN', 'MontB', 15, 318, IY + 30, CRM, { track: 2 }); fit(ib, '3PM', 'Anton', 318, IY + 40, 86, 44, RD);
+    ib.fillRect(462, IY + 4, 3, 80);
+    fit(ib, 'TWIN-PEAKS MOUNTAIN', 'Anton', 537, IY + 12, 420, 42, CRM, { track: 2 });
+    text(ib, 'BRGY. DAPDAP, TAYABAS CITY', 'MontB', 17, 747, IY + 84, CRM, { align: 'center', track: 3 });
+    ib.strokeStyle = RD; ib.lineWidth = 3.5; ib.lineCap = 'round'; ib.beginPath();
+    for (let t = -.2; t <= Math.PI * 2 + .35; t += .05) { const x = 747 + Math.cos(t) * (268 + Math.sin(t * 3) * 6), y = IY + 50 + Math.sin(t) * (66 + t * 1.6); t === -.2 ? ib.moveTo(x, y) : ib.lineTo(x, y); } ib.stroke();
+    const cs = ib; text(cs, 'COSTUME IS A MUST', 'MontB', 13, 62, 1330, CRM, { track: 3 }); text(cs, 'STRICTLY NO MINORS', 'MontB', 13, W - 62, 1330, CRM, { track: 3, align: 'right' });
+    wear(ib, .1, 15);
+
+    // ── sparkles + bats ──
+    const sp = layer('05-sparkles');
+    for (const [x, y, r, c] of [[110, 300, 40, '#B51C24'], [985, 470, 34, '#B51C24'], [1000, 170, 20, CRM], [80, 150, 16, CRM], [1000, 1060, 26, '#B51C24'], [930, 700, 14, CRM], [90, 720, 26, '#B51C24']]) sparkle(sp, x, y, r, c);
+    sp.fillStyle = '#0D0809'; sp.shadowColor = 'rgba(255,70,60,.55)'; sp.shadowBlur = 10;
+    const bat = (x, y, sc, rot) => { sp.save(); sp.translate(x, y); sp.rotate(rot); sp.scale(sc, sc); sp.beginPath(); sp.moveTo(0, 0); sp.quadraticCurveTo(-30, -30, -80, -10); sp.quadraticCurveTo(-60, 0, -55, 18); sp.quadraticCurveTo(-35, 5, -20, 20); sp.quadraticCurveTo(-8, 8, 0, 18); sp.quadraticCurveTo(8, 8, 20, 20); sp.quadraticCurveTo(35, 5, 55, 18); sp.quadraticCurveTo(60, 0, 80, -10); sp.quadraticCurveTo(30, -30, 0, 0); sp.fill(); sp.beginPath(); sp.arc(0, 2, 9, 0, 7); sp.fill(); sp.restore(); };
+    for (const [x, y, sc, rot] of [[880, 560, .55, -.15], [180, 580, .45, .2], [960, 620, .32, .1]]) bat(x, y, sc, rot);
+    wear(sp, .25, 16);
+
+    // ── finish: grain, scratches, creases, vignette, film burn (same as slide 1) ──
+    const gx = layer('06-grain');
+    { const c = gx.canvas, id = gx.createImageData(c.width, c.height), r = rng(9); for (let i = 0; i < c.width * c.height; i++) { const v = 128 + (r() + r() + r() - 1.5) * 70; id.data[i * 4] = id.data[i * 4 + 1] = id.data[i * 4 + 2] = v; id.data[i * 4 + 3] = 255; } gx.putImageData(id, 0, 0); }
+    const fin = layer('poster'); fin.setTransform(1, 0, 0, 1, 0, 0);
+    for (const k of ['01-background', '05-sparkles', '02-type', '03-register', '04-info-bar']) fin.drawImage(OUT[k], 0, 0);
+    fin.globalCompositeOperation = 'overlay'; fin.globalAlpha = .5; fin.drawImage(OUT['06-grain'], 0, 0); fin.globalCompositeOperation = 'source-over'; fin.globalAlpha = 1;
+    // redraw the QR on top of the grain so it always scans
+    { fin.setTransform(S, 0, 0, S, 0, 0); fin.save(); fin.translate(QX + QS / 2, QY + QS / 2); fin.rotate(-.03); fin.drawImage(qr, -QS / 2 + 14, -QS / 2 + 14, QS - 28, QS - 28); fin.restore(); fin.setTransform(1, 0, 0, 1, 0, 0); }
+    { const fx = layer('07-vignette'); fx.setTransform(1, 0, 0, 1, 0, 0); let v = fx.createRadialGradient(W * S / 2, H * S * .48, H * S * .38, W * S / 2, H * S * .48, H * S * .82); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.5)'); fx.fillStyle = v; fx.fillRect(0, 0, W * S, H * S); fin.drawImage(fx.canvas, 0, 0);
+      const lb = layer('08-film-burn'); v = lb.createRadialGradient(0, 0, 0, 0, 0, 420); v.addColorStop(0, 'rgba(255,120,40,.4)'); v.addColorStop(1, 'rgba(255,120,40,0)'); lb.fillStyle = v; lb.fillRect(0, 0, W, H);
+      v = lb.createRadialGradient(W, H, 0, W, H, 380); v.addColorStop(0, 'rgba(230,40,40,.3)'); v.addColorStop(1, 'rgba(230,40,40,0)'); lb.fillStyle = v; lb.fillRect(0, 0, W, H);
+      fin.globalCompositeOperation = 'screen'; fin.drawImage(lb.canvas, 0, 0); fin.globalCompositeOperation = 'source-over'; }
+    document.body.appendChild(OUT.poster);
+    document.title = 'ready';
+  } catch (e) { console.log(e && e.stack || e); document.title = 'error ' + e; }
+})();
+</script></body></html>
