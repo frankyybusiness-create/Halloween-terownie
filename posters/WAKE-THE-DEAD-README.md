@@ -100,3 +100,8 @@ Each element is borrowed from one of the reference posters:
 Files: `terownie-popup-retro-print-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-tv-retro.html`.
 - **Base:** the retro TV poster without Ghostface, with an identical layout.
 - **Retro finish:** a faded, warm vintage colour grade with lifted blacks and yellowed whites, faint ink misregistration and paper grain. It's full-bleed, with no border.
+
+## Retro TV poster: white creepy colourway
+Files: `terownie-popup-retro-tv-white-3240x4050.jpg`, `-print.pdf`, `-1080x1350.png`. Source: `source/wake-the-dead-tv-white.html`.
+- **Design:** the same as the red no-Ghostface version.
+- **Colours:** bone-white misty paper, a ghostly grey crowd, black type, the black Terownie logo (recoloured only) and blood-red accents. The red TV and the full-colour pumpkin host stay as they are.
